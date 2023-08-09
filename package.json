@@ -1,0 +1,20 @@
+{
+  "name": "audio-experiments",
+  "version": "0.0.0",
+  "description": "Audio experiments for the w3 platform.",
+  "main": "index.js",
+  "keywords": [
+    "Engineering",
+    "Labs",
+    "web",
+    "audio",
+    "experiments",
+    "JavaScript",
+    "wasm"
+  ],
+  "author": {
+    "name": "Edgar Bermejo at Engineering Labs",
+    "email": "hello@engineeringlabs.io"
+  },
+  "license": "MIT"
+}

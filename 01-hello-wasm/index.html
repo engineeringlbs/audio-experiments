@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Experiments</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <button id="play">Play/Pause ⏯ </button>
+
+  <div class="container">
+    <div class="container">
+      <label for="note">Note</label>
+      <input type="range" name="note" id="note" min="30" max="80" value="50">
+    </div>
+    
+    <div class="container">
+      <label for="freq">Frequency</label>
+      <input type="range" name="freq" id="freq" min="0" max="3" value="0" step="0.05">
+    </div>
+
+    <div class="container">
+      <label for="amount">Ammount</label>
+      <input type="range" name="amount" id="amount" min="0" max="3" value="0" step="0.05">
+    </div>
+  </div>
+
+  <script type="module" crossorigin  src="index.js"></script>
+  
+</body>
+</html>
