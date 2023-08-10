@@ -1,0 +1,41 @@
+html, body {
+  height: 100%;
+  font-family: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.wrapper {
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="range"] {
+  width: 200px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: grey;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+.mb-16 {
+  margin-bottom: 16px;
+}

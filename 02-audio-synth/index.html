@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WASM Experiments</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    
+    <div class="wrapper">
+      <h2 class="mb-16">WebAudio API Synth 🎛️🎚️</h2>
+      <p class="mb-16">An experiment to explore the JavaScript WebAudio API capabilities.</p>
+
+      <h3 class="mb-16">Main</h3>
+
+      <div class="mb-16">
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button id="stop">Stop</button>
+      </div>
+
+      <div class="container">
+        <div class="container mb-8">
+          <label for="volume">Volume</label>
+          <input
+            type="range"
+            name="volume"
+            id="volume"
+            min="0"
+            max="1"
+            step="0.05"
+            value="0.2"
+          />
+        </div>
+
+        <div class="container mb-16">
+          <label for="tempo">Tempo (BPM)</label>
+          <input
+            type="range"
+            name="tempo"
+            id="tempo"
+            min="60"
+            max="300"
+            step="5"
+            value="120"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="wrapper">
+      <h3 class="mb-16">Oscillator (OSC)</h3>
+      
+      <div>
+        <h4 class="mb-16">Waveform</h4>
+        
+        <div>
+
+        </div>
+        <input type="radio" id="sin-wave" name="waveform" value="sine" checked />
+        <label for="sin-wave">Sin Wave</label>
+        <input type="radio" id="square-wave" name="waveform" value="square" />
+        <label for="square-wave">Square Wave</label>
+        <input type="radio" id="triangle-wave" name="waveform" value="triangle" />
+        <label for="triangle-wave">Triangle Wave</label>
+        <input type="radio" id="sawtooth-wave" name="waveform" value="sawtooth" />
+        <label for="sawtooth-wave">Sawtooth Wave</label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="wrapper">
+      <h3 class="mb-16">Notes</h3>
+
+      <div class="notes-wrapper"></div>
+    </div>
+    
+    <div class="divider"></div>
+
+    <div class="wrapper">
+      <h3 class="mb-16">ADSR Envelope</h3>
+
+      <div class="container mb-8">
+        <label for="attack">Attack time</label>
+        <input
+          type="range"
+          name="attack"
+          id="attack"
+          min="0"
+          max="5000"
+          value="20"
+        />
+      </div>
+      
+      <div class="container mb-8">
+        <label for="decay">Decay time</label>
+        <input
+          type="range"
+          name="decay"
+          id="decay"
+          min="0"
+          max="5000"
+          value="50"
+        />
+      </div>
+      
+      <div class="container mb-8">
+        <label for="sustain">Sustain level</label>
+        <input
+          type="range"
+          name="sustain"
+          id="sustain"
+          min="0"
+          max="100"
+          value="80"
+        />
+      </div>
+      
+      <div class="container mb-8">
+        <label for="release">Release time</label>
+        <input
+          type="range"
+          name="release"
+          id="release"
+          min="0"
+          max="10000"
+          value="1000"
+        />
+      </div>
+    </div>
+
+    <!-- Script -->
+    <script type="module" crossorigin src="index.js"></script>
+  </body>
+</html>
