@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    
     <div class="wrapper">
       <h2 class="mb-16">WebAudio API Synth 🎛️🎚️</h2>
-      <p class="mb-16">An experiment to explore the JavaScript WebAudio API capabilities.</p>
+      <p class="mb-16">
+        An experiment to explore the JavaScript WebAudio API capabilities.
+      </p>
 
       <h3 class="mb-16">Main</h3>
 
@@ -22,27 +23,31 @@
 
       <div class="container">
         <div class="container mb-8">
-          <label for="volume">Volume</label>
+          <label for="volume" class="flex"
+            >Volume <span id="vol">0.2</span></label
+          >
           <input
             type="range"
             name="volume"
             id="volume"
             min="0"
             max="1"
-            step="0.05"
+            step="0.01"
             value="0.2"
           />
         </div>
 
         <div class="container mb-16">
-          <label for="tempo">Tempo (BPM)</label>
+          <label for="tempo" class="flex"
+            >Tempo <span id="bpm">120 bpm</span></label
+          >
           <input
             type="range"
             name="tempo"
             id="tempo"
             min="60"
             max="300"
-            step="5"
+            step="1"
             value="120"
           />
         </div>
@@ -53,20 +58,34 @@
 
     <div class="wrapper">
       <h3 class="mb-16">Oscillator (OSC)</h3>
-      
+
       <div>
         <h4 class="mb-16">Waveform</h4>
-        
-        <div>
 
-        </div>
-        <input type="radio" id="sin-wave" name="waveform" value="sine" checked />
+        <div></div>
+        <input
+          type="radio"
+          id="sin-wave"
+          name="waveform"
+          value="sine"
+          checked
+        />
         <label for="sin-wave">Sin Wave</label>
         <input type="radio" id="square-wave" name="waveform" value="square" />
         <label for="square-wave">Square Wave</label>
-        <input type="radio" id="triangle-wave" name="waveform" value="triangle" />
+        <input
+          type="radio"
+          id="triangle-wave"
+          name="waveform"
+          value="triangle"
+        />
         <label for="triangle-wave">Triangle Wave</label>
-        <input type="radio" id="sawtooth-wave" name="waveform" value="sawtooth" />
+        <input
+          type="radio"
+          id="sawtooth-wave"
+          name="waveform"
+          value="sawtooth"
+        />
         <label for="sawtooth-wave">Sawtooth Wave</label>
       </div>
     </div>
@@ -78,58 +97,134 @@
 
       <div class="notes-wrapper"></div>
     </div>
-    
+
     <div class="divider"></div>
 
     <div class="wrapper">
       <h3 class="mb-16">ADSR Envelope</h3>
 
-      <div class="container mb-8">
-        <label for="attack">Attack time</label>
-        <input
-          type="range"
-          name="attack"
-          id="attack"
-          min="0"
-          max="5000"
-          value="20"
-        />
-      </div>
-      
-      <div class="container mb-8">
-        <label for="decay">Decay time</label>
-        <input
-          type="range"
-          name="decay"
-          id="decay"
-          min="0"
-          max="5000"
-          value="50"
-        />
-      </div>
-      
-      <div class="container mb-8">
-        <label for="sustain">Sustain level</label>
-        <input
-          type="range"
-          name="sustain"
-          id="sustain"
-          min="0"
-          max="100"
-          value="80"
-        />
-      </div>
-      
-      <div class="container mb-8">
-        <label for="release">Release time</label>
-        <input
-          type="range"
-          name="release"
-          id="release"
-          min="0"
-          max="10000"
-          value="1000"
-        />
+      <div class="row">
+        <div class="col">
+          <div class="container mb-8">
+            <label for="attack" class="flex"
+              >Attack time <span id="attck">20 ms</span></label
+            >
+            <input
+              type="range"
+              name="attack"
+              id="attack"
+              min="0"
+              max="5000"
+              value="20"
+            />
+          </div>
+
+          <div class="container mb-8">
+            <label for="decay" class="flex"
+              >Decay time <span id="dcy">50 ms</span></label
+            >
+            <input
+              type="range"
+              name="decay"
+              id="decay"
+              min="0"
+              max="5000"
+              value="50"
+            />
+          </div>
+
+          <div class="container mb-8">
+            <label for="sustain" class="flex"
+              >Sustain level <span id="sstn">50 %</span></label
+            >
+            <input
+              type="range"
+              name="sustain"
+              id="sustain"
+              min="0"
+              max="100"
+              value="80"
+            />
+          </div>
+
+          <div class="container mb-8">
+            <label for="release" class="flex"
+              >Release time <span id="rls">50 ms</span></label
+            >
+            <input
+              type="range"
+              name="release"
+              id="release"
+              min="0"
+              max="10000"
+              value="1000"
+            />
+          </div>
+        </div>
+
+        <div class="col ml-16">
+          <div class="adsr-visualizer-wrapper">
+            <svg
+              class="adsr-visualizer"
+              viewBox="0 0 600 160"
+              preserveAspectRatio="xMinYMid slice"
+            >
+              <path
+                class="shape"
+                d="M0,160L0,0"
+                fill="transparent"
+                stroke="#00b6ff"
+                stroke-width="2"
+              ></path>
+
+              <circle
+                class="dot-attack"
+                cx="0"
+                cy="0"
+                r="6"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+              <circle
+                class="dot-decay"
+                cx="0"
+                cy="160"
+                r="6"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+              <circle
+                class="dot-sustain"
+                cx="0"
+                cy="0"
+                r="6"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+              <circle
+                class="dot-release"
+                cx="0"
+                cy="160"
+                r="6"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+              <circle
+                class="dot-delay"
+                cx="0"
+                cy="160"
+                r="6"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
 

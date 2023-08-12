@@ -35,6 +35,7 @@ volume.connect(context.destination)
 const startBtn = document.querySelector('#play')
 const stopBtn = document.querySelector('#pause')
 const tempoCtrl = document.querySelector('#tempo')
+const volumeCtrl = document.querySelector('#volume')
 
 startBtn.addEventListener('click', () => {
   if (!playing) {
@@ -49,8 +50,20 @@ stopBtn.addEventListener('click', () => {
 
 tempoCtrl.addEventListener(
   'input',
-  function () {
-    tempo = Number(this.value)
+  (event) => {
+    const value = Number(event.target.value)
+    tempo = value
+    document.querySelector('#bpm').innerText = `${value} bpm`
+  },
+  false
+)
+
+volumeCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    volume.gain.value = value
+    document.querySelector('#vol').innerText = `${value}`
   },
   false
 )
@@ -122,11 +135,109 @@ function onSelectNoteChange() {
  */
 
 // ADSR
-let attackTime = 0.2 // ms
-let decayTime = 0.5 // ms
-let sustainLevel = 0.8 // %
-let releaseTime = 0.2 // ms
+const WIDTH = 600
+const HALF_WIDTH = WIDTH / 2
+const HEIGHT = 300
+const HALF_HEIGHT = HEIGHT / 2
+const attackCtrl = document.querySelector('#attack')
+const decayCtrl = document.querySelector('#decay')
+const sustainCtrl = document.querySelector('#sustain')
+const releaseCtrl = document.querySelector('#release')
+const adsrContainer = document.querySelector('.adsr-visualizer')
+const adsrVisualizer = {
+  container: adsrContainer,
+  shape: adsrContainer.querySelector('.shape'),
+  attack: adsrContainer.querySelector('.dot-attack'),
+  decay: adsrContainer.querySelector('.dot-decay'),
+  sustain: adsrContainer.querySelector('.dot-sustain'),
+  release: adsrContainer.querySelector('.dot-release'),
+}
+const maxAttack = 5000
+const maxDecay = 5000
+const maxSustainTime = 5000
+const maxSustain = 100
+const maxRelease = 10000
+// Max
+let attackTime = 20 // ms
+let decayTime = 50 // ms
+let sustainTime = 1000 // ms
+let sustainLevel = 80 // % or dB
+let releaseTime = 1000 // ms
+// Min
+let minDecay = attackTime
+let minSustain = decayTime
+let minRelease = sustainLevel
+
 let len = attackTime + decayTime + releaseTime
+
+attackCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    attackTime = value
+    document.querySelector('#attck').innerText = `${value} ms`
+    updateADSR()
+  },
+  false
+)
+
+decayCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    decayTime = value
+    document.querySelector('#dcy').innerText = `${value} ms`
+    updateADSR()
+  },
+  false
+)
+
+sustainCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    sustainLevel = value
+    document.querySelector('#sstn').innerText = `${value} %`
+    updateADSR()
+  },
+  false
+)
+
+releaseCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    releaseTime = decayTime + value
+    document.querySelector('#rls').innerText = `${value} ms`
+    updateADSR()
+  },
+  false
+)
+
+function updateADSR() {
+  const dotAttack = (attackTime / maxAttack) * HALF_WIDTH
+  const dotDecay = (decayTime / maxDecay) * HALF_WIDTH
+  const dotSustain = (sustainLevel / maxSustain) * HALF_HEIGHT
+  const dotRelease = (releaseTime / maxRelease) * HALF_WIDTH
+  len = attackTime + decayTime + releaseTime
+  
+  adsrVisualizer.attack.setAttribute('cx', dotAttack)
+  adsrVisualizer.decay.setAttribute('cx', dotAttack + dotDecay)
+  adsrVisualizer.decay.setAttribute('cy', dotSustain)
+  adsrVisualizer.sustain.setAttribute('cy', dotSustain)
+  adsrVisualizer.release.setAttribute('cx', dotRelease)
+
+  // adsrVisualizer.shape.setAttribute(
+  //   'd',
+  //   `M${0},160` +
+  //     `C${0},160,${dotAttack},0,${dotAttack},0` +
+  //     `L${dotSustain},0` 
+  //     `C${dotSustain},0,${dotDecay},${dotSustain},${dotDecay},${dotSustain}` +
+  //     `C${dotDecay},${dotSustain},${dotRelease},160,${dotRelease},160`
+  // )
+}
+
+updateADSR()
 
 let t = 0
 // Loop
@@ -137,6 +248,7 @@ function loop() {
     playNote()
     nextNote()
 
+    // Improve clock
     window.setTimeout(() => {
       loop()
     }, spb * 1000)
@@ -144,13 +256,12 @@ function loop() {
 }
 
 function playNote() {
-  // clean()
+  clean()
 
   const now = context.currentTime
   const osc = new OscillatorNode(context)
   const note = new GainNode(context)
   const freq = Object.values(NOTES)[`${currentNotes[currentNote]}`]
-  console.log(freq);
   osc.type = waveform
   osc.frequency.setValueAtTime(freq, 0)
   garbage.push(osc) // trying to garbage

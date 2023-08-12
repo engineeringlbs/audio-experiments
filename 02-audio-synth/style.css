@@ -23,14 +23,51 @@ input[type="range"] {
 }
 
 label {
+  width: 200px;
   font-size: 13px;
   font-weight: 500;
+}
+
+label.flex {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
 }
 
 .divider {
   width: 100%;
   height: 1px;
   background-color: grey;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: stretch;
+}
+
+.col {
+  width: auto;
+  height: auto;
+}
+
+.adsr-visualizer-wrapper {
+  height: 160px;
+  background-color: #21272b;
+}
+.adsr-visualizer {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ml-8 {
+  margin-left: 8px;
+}
+.ml-16 {
+  margin-left: 16px;
 }
 
 .mb-8 {
