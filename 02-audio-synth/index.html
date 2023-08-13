@@ -101,63 +101,84 @@
     <div class="divider"></div>
 
     <div class="wrapper">
-      <h3 class="mb-16">ADSR Envelope</h3>
+      <h3 class="mb-16 flex">
+        AHDSR Envelope <span id="envelope-len" class="label"></span>
+      </h3>
 
       <div class="row">
         <div class="col">
           <div class="container mb-8">
             <label for="attack" class="flex"
-              >Attack time <span id="attck">20 ms</span></label
+              >Attack <span id="attck">0.25</span></label
             >
             <input
               type="range"
               name="attack"
               id="attack"
               min="0"
-              max="5000"
-              value="20"
+              max="1"
+              value="0.25"
+              step="0.01"
+            />
+          </div>
+
+          <div class="container mb-8">
+            <label for="hold" class="flex"
+              >Hold <span id="hld">0.25</span></label
+            >
+            <input
+              type="range"
+              name="hold"
+              id="hold"
+              min="0"
+              max="1"
+              value="0.25"
+              step="0.01"
             />
           </div>
 
           <div class="container mb-8">
             <label for="decay" class="flex"
-              >Decay time <span id="dcy">50 ms</span></label
+              >Decay <span id="dcy">0.25</span></label
             >
             <input
               type="range"
               name="decay"
               id="decay"
               min="0"
-              max="5000"
-              value="50"
+              max="1"
+              value="0.25"
+              step="0.01"
             />
           </div>
 
           <div class="container mb-8">
             <label for="sustain" class="flex"
-              >Sustain level <span id="sstn">50 %</span></label
+              >Sustain <span id="sstn">0.80</span></label
             >
             <input
               type="range"
               name="sustain"
               id="sustain"
               min="0"
-              max="100"
-              value="80"
+              max="1"
+              value="0.80"
+              step="0.01"
             />
           </div>
 
           <div class="container mb-8">
             <label for="release" class="flex"
-              >Release time <span id="rls">50 ms</span></label
+              >Release <span id="rls">0.25</span></label
             >
             <input
               type="range"
               name="release"
               id="release"
               min="0"
-              max="10000"
-              value="1000"
+              max="4"
+              value="1"
+              step="0.01"
             />
           </div>
         </div>
@@ -166,22 +187,35 @@
           <div class="adsr-visualizer-wrapper">
             <svg
               class="adsr-visualizer"
-              viewBox="0 0 600 160"
+              viewBox="0 0 600 100"
               preserveAspectRatio="xMinYMid slice"
             >
-              <path
-                class="shape"
-                d="M0,160L0,0"
+              <polyline class="shape"/>
+
+              <circle
+                class="dot-delay"
+                cx="0"
+                cy="100"
+                r="4"
                 fill="transparent"
-                stroke="#00b6ff"
+                stroke="#ffef00"
                 stroke-width="2"
-              ></path>
+              ></circle>
 
               <circle
                 class="dot-attack"
                 cx="0"
                 cy="0"
-                r="6"
+                r="4"
+                fill="transparent"
+                stroke="#ffef00"
+                stroke-width="2"
+              ></circle>
+              <circle
+                class="dot-hold"
+                cx="0"
+                cy="0"
+                r="4"
                 fill="transparent"
                 stroke="#ffef00"
                 stroke-width="2"
@@ -189,8 +223,8 @@
               <circle
                 class="dot-decay"
                 cx="0"
-                cy="160"
-                r="6"
+                cy="100"
+                r="4"
                 fill="transparent"
                 stroke="#ffef00"
                 stroke-width="2"
@@ -199,25 +233,17 @@
                 class="dot-sustain"
                 cx="0"
                 cy="0"
-                r="6"
+                r="4"
                 fill="transparent"
                 stroke="#ffef00"
                 stroke-width="2"
               ></circle>
+
               <circle
                 class="dot-release"
-                cx="0"
-                cy="160"
-                r="6"
-                fill="transparent"
-                stroke="#ffef00"
-                stroke-width="2"
-              ></circle>
-              <circle
-                class="dot-delay"
-                cx="0"
-                cy="160"
-                r="6"
+                cx="600"
+                cy="100"
+                r="4"
                 fill="transparent"
                 stroke="#ffef00"
                 stroke-width="2"

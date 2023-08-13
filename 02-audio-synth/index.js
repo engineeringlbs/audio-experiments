@@ -23,12 +23,11 @@ let tempo = 120.0
 let playing = false
 let currentNote = 0 // current note index
 
+// Main Aucio Context
 const context = new AudioContext()
 const volume = new GainNode(context)
 
 volume.gain.value = 0.2
-
-// Create the audio graph
 volume.connect(context.destination)
 
 // UI
@@ -127,55 +126,65 @@ function onSelectNoteChange() {
 }
 
 /**
- * Effects setup
- *
- * - ADSR Envelope (Attack, Decay, Sustain and Release)
- * - Delay
- * - Vibrato
+ * AHDSR Envelope (Attack, Hold, Decay, Sustain, Release)
  */
-
-// ADSR
 const WIDTH = 600
 const HALF_WIDTH = WIDTH / 2
-const HEIGHT = 300
+const HEIGHT = 200
 const HALF_HEIGHT = HEIGHT / 2
+const MIN_LENGTH = 2000
+const MAX_LENGTH = 4500
+const envLen = document.querySelector('#envelope-len')
 const attackCtrl = document.querySelector('#attack')
 const decayCtrl = document.querySelector('#decay')
 const sustainCtrl = document.querySelector('#sustain')
 const releaseCtrl = document.querySelector('#release')
-const adsrContainer = document.querySelector('.adsr-visualizer')
-const adsrVisualizer = {
-  container: adsrContainer,
-  shape: adsrContainer.querySelector('.shape'),
-  attack: adsrContainer.querySelector('.dot-attack'),
-  decay: adsrContainer.querySelector('.dot-decay'),
-  sustain: adsrContainer.querySelector('.dot-sustain'),
-  release: adsrContainer.querySelector('.dot-release'),
+const holdCtrl = document.querySelector('#hold')
+const AHDSRContainer = document.querySelector('.adsr-visualizer')
+const AHDSRVisualizer = {
+  container: AHDSRContainer,
+  shape: AHDSRContainer.querySelector('.shape'),
+  preshape: AHDSRContainer.querySelector('.pre.shape'),
+  posshape: AHDSRContainer.querySelector('.pos.shape'),
+  attack: AHDSRContainer.querySelector('.dot-attack'),
+  hold: AHDSRContainer.querySelector('.dot-hold'),
+  decay: AHDSRContainer.querySelector('.dot-decay'),
+  sustain: AHDSRContainer.querySelector('.dot-sustain'),
+  release: AHDSRContainer.querySelector('.dot-release'),
 }
-const maxAttack = 5000
-const maxDecay = 5000
-const maxSustainTime = 5000
-const maxSustain = 100
-const maxRelease = 10000
-// Max
-let attackTime = 20 // ms
-let decayTime = 50 // ms
-let sustainTime = 1000 // ms
-let sustainLevel = 80 // % or dB
-let releaseTime = 1000 // ms
 // Min
-let minDecay = attackTime
-let minSustain = decayTime
-let minRelease = sustainLevel
+const minSustain = 500
+// Max
+const maxAttack = 1
+const maxHold = 1
+const maxDecay = 1
+const maxSustain = 1
+const maxRelease = 4
 
-let len = attackTime + decayTime + releaseTime
+let duration = 2
+let attackTime = 0.25 // s
+let holdTime = 0.25 // s
+let decayTime = 0.25 // s
+let sustainLevel = 0.8 // % or dB
+let releaseTime = 1 // s
 
 attackCtrl.addEventListener(
   'input',
   (event) => {
     const value = Number(event.target.value)
     attackTime = value
-    document.querySelector('#attck').innerText = `${value} ms`
+    document.querySelector('#attck').innerText = `${value.toFixed(2)}`
+    updateADSR()
+  },
+  false
+)
+
+holdCtrl.addEventListener(
+  'input',
+  (event) => {
+    const value = Number(event.target.value)
+    holdTime = value
+    document.querySelector('#hld').innerText = `${value.toFixed(2)}`
     updateADSR()
   },
   false
@@ -186,7 +195,7 @@ decayCtrl.addEventListener(
   (event) => {
     const value = Number(event.target.value)
     decayTime = value
-    document.querySelector('#dcy').innerText = `${value} ms`
+    document.querySelector('#dcy').innerText = `${value.toFixed(2)}`
     updateADSR()
   },
   false
@@ -197,7 +206,7 @@ sustainCtrl.addEventListener(
   (event) => {
     const value = Number(event.target.value)
     sustainLevel = value
-    document.querySelector('#sstn').innerText = `${value} %`
+    document.querySelector('#sstn').innerText = `${value.toFixed(2)}`
     updateADSR()
   },
   false
@@ -207,40 +216,64 @@ releaseCtrl.addEventListener(
   'input',
   (event) => {
     const value = Number(event.target.value)
-    releaseTime = decayTime + value
-    document.querySelector('#rls').innerText = `${value} ms`
+    releaseTime = value
+    document.querySelector('#rls').innerText = `${value.toFixed(2)}`
     updateADSR()
   },
   false
 )
 
 function updateADSR() {
-  const dotAttack = (attackTime / maxAttack) * HALF_WIDTH
-  const dotDecay = (decayTime / maxDecay) * HALF_WIDTH
-  const dotSustain = (sustainLevel / maxSustain) * HALF_HEIGHT
-  const dotRelease = (releaseTime / maxRelease) * HALF_WIDTH
-  len = attackTime + decayTime + releaseTime
-  
-  adsrVisualizer.attack.setAttribute('cx', dotAttack)
-  adsrVisualizer.decay.setAttribute('cx', dotAttack + dotDecay)
-  adsrVisualizer.decay.setAttribute('cy', dotSustain)
-  adsrVisualizer.sustain.setAttribute('cy', dotSustain)
-  adsrVisualizer.release.setAttribute('cx', dotRelease)
+  duration = Math.max(attackTime + holdTime + decayTime + 0.5 + releaseTime, 0)
 
-  // adsrVisualizer.shape.setAttribute(
-  //   'd',
-  //   `M${0},160` +
-  //     `C${0},160,${dotAttack},0,${dotAttack},0` +
-  //     `L${dotSustain},0` 
-  //     `C${dotSustain},0,${dotDecay},${dotSustain},${dotDecay},${dotSustain}` +
-  //     `C${dotDecay},${dotSustain},${dotRelease},160,${dotRelease},160`
-  // )
+  const points = calcEnvelopePoints(
+    duration,
+    attackTime,
+    holdTime,
+    decayTime,
+    sustainLevel,
+    releaseTime
+  )
+
+  AHDSRVisualizer.shape.setAttribute('points', points)
+  AHDSRVisualizer.attack.setAttribute('cx', points[2])
+  AHDSRVisualizer.hold.setAttribute('cx', points[4])
+  AHDSRVisualizer.hold.setAttribute('cy', points[5])
+  AHDSRVisualizer.decay.setAttribute('cx', points[6])
+  AHDSRVisualizer.decay.setAttribute('cy', points[7])
+  AHDSRVisualizer.sustain.setAttribute('cx', points[8])
+  AHDSRVisualizer.sustain.setAttribute('cy', points[9])
 }
 
 updateADSR()
 
-let t = 0
+function calcEnvelopePoints(dur, attack, hold, decay, sustain, release) {
+  const bpp = WIDTH / dur
+  const attX = bpp * attack
+  const holX = attX + bpp * hold
+  const decX = holX + bpp * decay
+  const susX = decX + bpp * (dur - attack - hold - decay - release)
+  const relX = susX + bpp * release
+  const susY = HALF_HEIGHT * (1 - sustain)
+
+  return [
+    0,
+    HALF_HEIGHT,
+    attX,
+    0,
+    holX,
+    0,
+    decX,
+    susY,
+    susX,
+    susY,
+    relX,
+    HALF_HEIGHT,
+  ]
+}
+
 // Loop
+let t = 0
 function loop() {
   const spb = 60.0 / tempo
 
@@ -255,7 +288,11 @@ function loop() {
   }
 }
 
+/**
+ * Play a note.
+ */
 function playNote() {
+  // trying to keep garbage clean as possible
   clean()
 
   const now = context.currentTime
@@ -266,17 +303,26 @@ function playNote() {
   osc.frequency.setValueAtTime(freq, 0)
   garbage.push(osc) // trying to garbage
 
-  note.gain.setValueAtTime(0, 0)
-  note.gain.linearRampToValueAtTime(sustainLevel, now + len * attackTime)
-  note.gain.setValueAtTime(sustainLevel, now + len * releaseTime)
-  note.gain.linearRampToValueAtTime(0, now + len)
-  garbage.push(note) // trying to garbage
+  note.gain.setValueAtTime(0, now)
+
+  // Attack
+  note.gain.linearRampToValueAtTime(1, now + attackTime)
+  note.gain.setValueAtTime(1, now + attackTime)
+
+  // Hold
+  note.gain.linearRampToValueAtTime(1, now + attackTime + holdTime)
+
+  // Decay and sustain
+  note.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + holdTime + decayTime)
+
+  // trying to keep garbage clean as possible
+  garbage.push(note)
 
   osc.connect(note)
   note.connect(volume)
 
   osc.start(0)
-  osc.stop(now + len)
+  osc.stop(now + duration)
 }
 
 function nextNote() {
@@ -290,4 +336,29 @@ function nextNote() {
 // Force GC cleaning up shit
 function clean() {
   garbage.length = 0
+}
+
+// Normalize envelope total time
+function normalizeEnvelopeLenght(time) {
+  if (time > MAX_LENGTH) {
+    return MAX_LENGTH
+  }
+
+  if (time < MIN_LENGTH) {
+    return MIN_LENGTH
+  }
+
+  return time
+}
+
+/**
+ * Normalize value from milliseconds to float seconds for UI components.
+ * .
+ * @example 80 === 0.08
+ *
+ * @param {number} value. Value in seconds
+ */
+function normalizeMs(value) {
+  const seconds = parseFloat(value)
+  return seconds / 1000
 }
