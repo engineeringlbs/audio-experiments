@@ -129,12 +129,8 @@ function onSelectNoteChange() {
  * AHDSR Envelope (Attack, Hold, Decay, Sustain, Release)
  */
 const WIDTH = 600
-const HALF_WIDTH = WIDTH / 2
 const HEIGHT = 200
 const HALF_HEIGHT = HEIGHT / 2
-const MIN_LENGTH = 2000
-const MAX_LENGTH = 4500
-const envLen = document.querySelector('#envelope-len')
 const attackCtrl = document.querySelector('#attack')
 const decayCtrl = document.querySelector('#decay')
 const sustainCtrl = document.querySelector('#sustain')
@@ -152,14 +148,6 @@ const AHDSRVisualizer = {
   sustain: AHDSRContainer.querySelector('.dot-sustain'),
   release: AHDSRContainer.querySelector('.dot-release'),
 }
-// Min
-const minSustain = 500
-// Max
-const maxAttack = 1
-const maxHold = 1
-const maxDecay = 1
-const maxSustain = 1
-const maxRelease = 4
 
 let duration = 2
 let attackTime = 0.25 // s
@@ -236,11 +224,15 @@ function updateADSR() {
   )
 
   AHDSRVisualizer.shape.setAttribute('points', points)
+  
   AHDSRVisualizer.attack.setAttribute('cx', points[2])
+  
   AHDSRVisualizer.hold.setAttribute('cx', points[4])
   AHDSRVisualizer.hold.setAttribute('cy', points[5])
+  
   AHDSRVisualizer.decay.setAttribute('cx', points[6])
   AHDSRVisualizer.decay.setAttribute('cy', points[7])
+
   AHDSRVisualizer.sustain.setAttribute('cx', points[8])
   AHDSRVisualizer.sustain.setAttribute('cy', points[9])
 }
@@ -249,25 +241,25 @@ updateADSR()
 
 function calcEnvelopePoints(dur, attack, hold, decay, sustain, release) {
   const bpp = WIDTH / dur
-  const attX = bpp * attack
-  const holX = attX + bpp * hold
-  const decX = holX + bpp * decay
-  const susX = decX + bpp * (dur - attack - hold - decay - release)
-  const relX = susX + bpp * release
-  const susY = HALF_HEIGHT * (1 - sustain)
+  const att = bpp * attack
+  const hol = att + bpp * hold
+  const dec = hol + bpp * decay
+  const susx = dec + bpp * (dur - attack - hold - decay - release)
+  const susy = HALF_HEIGHT * (1 - sustain)
+  const rel = susx + bpp * release
 
   return [
     0,
     HALF_HEIGHT,
-    attX,
+    att,
     0,
-    holX,
+    hol,
     0,
-    decX,
-    susY,
-    susX,
-    susY,
-    relX,
+    dec,
+    susy,
+    susx,
+    susy,
+    rel,
     HALF_HEIGHT,
   ]
 }
@@ -336,29 +328,4 @@ function nextNote() {
 // Force GC cleaning up shit
 function clean() {
   garbage.length = 0
-}
-
-// Normalize envelope total time
-function normalizeEnvelopeLenght(time) {
-  if (time > MAX_LENGTH) {
-    return MAX_LENGTH
-  }
-
-  if (time < MIN_LENGTH) {
-    return MIN_LENGTH
-  }
-
-  return time
-}
-
-/**
- * Normalize value from milliseconds to float seconds for UI components.
- * .
- * @example 80 === 0.08
- *
- * @param {number} value. Value in seconds
- */
-function normalizeMs(value) {
-  const seconds = parseFloat(value)
-  return seconds / 1000
 }
