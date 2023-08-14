@@ -1,3 +1,17 @@
+const state = {
+  synths: {
+    osc: {
+      toggle: true,
+    },
+    lfo: {
+      toggle: false,
+    },
+    envelope: {
+      toggle: true,
+    },
+  },
+}
+
 const NOTES = {
   C4: 261.63,
   Db4: 277.18,
@@ -39,12 +53,17 @@ const volumeCtrl = document.querySelector('#volume')
 startBtn.addEventListener('click', () => {
   if (!playing) {
     playing = true
+
+    if (context.state === 'suspended') context.resume()
+    
     loop()
   }
 })
 
 stopBtn.addEventListener('click', () => {
   playing = false
+
+  if (context.state === 'running') context.suspend()
 })
 
 tempoCtrl.addEventListener(
@@ -224,12 +243,12 @@ function updateADSR() {
   )
 
   AHDSRVisualizer.shape.setAttribute('points', points)
-  
+
   AHDSRVisualizer.attack.setAttribute('cx', points[2])
-  
+
   AHDSRVisualizer.hold.setAttribute('cx', points[4])
   AHDSRVisualizer.hold.setAttribute('cy', points[5])
-  
+
   AHDSRVisualizer.decay.setAttribute('cx', points[6])
   AHDSRVisualizer.decay.setAttribute('cy', points[7])
 
@@ -288,30 +307,29 @@ function playNote() {
   clean()
 
   const now = context.currentTime
-  const osc = new OscillatorNode(context)
-  const note = new GainNode(context)
   const freq = Object.values(NOTES)[`${currentNotes[currentNote]}`]
-  osc.type = waveform
-  osc.frequency.setValueAtTime(freq, 0)
-  garbage.push(osc) // trying to garbage
-
+  const osc = new OscillatorNode(context, {
+    type: waveform,
+    frequency: freq,
+  })
+  const note = new GainNode(context)
   note.gain.setValueAtTime(0, now)
-
   // Attack
   note.gain.linearRampToValueAtTime(1, now + attackTime)
   note.gain.setValueAtTime(1, now + attackTime)
-
   // Hold
   note.gain.linearRampToValueAtTime(1, now + attackTime + holdTime)
-
   // Decay and sustain
-  note.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + holdTime + decayTime)
+  note.gain.linearRampToValueAtTime(
+    sustainLevel,
+    now + attackTime + holdTime + decayTime
+  )
 
   // trying to keep garbage clean as possible
+  garbage.push(osc)
   garbage.push(note)
 
-  osc.connect(note)
-  note.connect(volume)
+  osc.connect(note).connect(volume)
 
   osc.start(0)
   osc.stop(now + duration)
