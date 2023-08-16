@@ -39,10 +39,10 @@ let currentNote = 0 // current note index
 
 // Main Aucio Context
 const context = new AudioContext()
-const volume = new GainNode(context)
+const main = new GainNode(context)
 
-volume.gain.value = 0.2
-volume.connect(context.destination)
+main.gain.value = 0.2
+main.connect(context.destination)
 
 // UI
 const startBtn = document.querySelector('#play')
@@ -80,7 +80,7 @@ volumeCtrl.addEventListener(
   'input',
   (event) => {
     const value = Number(event.target.value)
-    volume.gain.value = value
+    main.gain.value = value
     document.querySelector('#vol').innerText = `${value}`
   },
   false
@@ -329,7 +329,7 @@ function playNote() {
   garbage.push(osc)
   garbage.push(note)
 
-  osc.connect(note).connect(volume)
+  osc.connect(note).connect(main)
 
   osc.start(0)
   osc.stop(now + duration)
