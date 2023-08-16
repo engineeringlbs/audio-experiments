@@ -333,6 +333,8 @@ function playNote() {
 
   osc.start(0)
   osc.stop(now + duration)
+
+  console.log(context.outputLatency);
 }
 
 function nextNote() {
