@@ -101,7 +101,15 @@ volumeCtrl.addEventListener(
 document.addEventListener('keydown', (event) => {
   const char = event.code.replace('Key', '')
   const freq = KEYS[char]
-  if (freq) playNote(freq)
+  if (freq && !event.repeat) {
+    noteOn(freq, char)
+  }
+})
+
+document.addEventListener('keyup', (event) => {
+  const char = event.code.replace('Key', '')
+  const freq = KEYS[char]
+  noteOff(freq, char)
 })
 
 /**
@@ -313,10 +321,50 @@ function loop() {
   }
 }
 
+const notes = new Map()
+function noteOn(freq, char) {
+  const now = context.currentTime
+  const osc = new OscillatorNode(context, {
+    type: waveform,
+    frequency: freq,
+  })
+
+  const note = new GainNode(context)
+  note.gain.setValueAtTime(0, now)
+  // Attack
+  note.gain.linearRampToValueAtTime(1, now + attackTime)
+  // note.gain.setValueAtTime(1, attck)
+  // Hold
+  const hld = now + attackTime + holdTime
+  note.gain.linearRampToValueAtTime(1, hld)
+  // Decay and sustain
+  note.gain.linearRampToValueAtTime(
+    sustainLevel,
+    now + attackTime + holdTime + decayTime
+  )
+
+  notes[char] = { osc, note }
+
+  osc.connect(note).connect(main)
+
+  osc.start()
+}
+
+function noteOff(freq, char) {
+  const now = context.currentTime
+  const { osc, note } = notes[char]
+  console.log(osc);
+  console.log(note);
+  note.gain.setValueAtTime(sustainLevel, now + attackTime + holdTime + decayTime)
+  note.gain.linearRampToValueAtTime(0, now + duration)
+  osc.stop(now + duration)
+  delete notes[char]
+}
+
 /**
  * Play a note.
  */
-function playNote(fr) {
+function playNote(fr, create = true) {
   // trying to keep garbage clean as possible
   clean()
 

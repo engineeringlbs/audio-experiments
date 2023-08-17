@@ -10,8 +10,9 @@
     <div class="wrapper">
       <img src="../assets/logo-line.svg" alt="logo" class="logo" />
 
-      <h2 class="mb-16">WebAudio API Synth 🎛️🎚️</h2>
-      <p>An experiment to explore the JavaScript WebAudio API capabilities.</p>
+      <h2 class="mb-16">Making noise 🔊</h2>
+      <p>An experiment to explore the capabilities of the  JavaScript WebAudio API to create intriguing noise! 😎</p>
+      <p>This experiment involves playing an OscillatorNode that you can modulate.</p>
     </div>
 
     <div class="wrapper">
@@ -19,12 +20,6 @@
 
       <div class="row">
         <div class="col">
-          <div class="mb-16">
-            <button id="play">Play</button>
-            <button id="pause">Pause</button>
-            <button id="stop">Stop</button>
-          </div>
-
           <div class="container">
             <div class="container mb-8">
               <label for="volume" class="flex"
@@ -72,7 +67,6 @@
       <div>
         <h4 class="mb-16">Waveform</h4>
 
-        <div></div>
         <input
           type="radio"
           id="sin-wave"
@@ -98,14 +92,6 @@
         />
         <label for="sawtooth-wave">Sawtooth Wave</label>
       </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="wrapper">
-      <h3 class="mb-16">Notes</h3>
-
-      <div class="notes-wrapper"></div>
     </div>
 
     <div class="divider"></div>
@@ -262,6 +248,20 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="wrapper">
+      <h3 class="mb-16">Notes</h3>
+
+      <div class="mb-16">
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button id="stop">Stop</button>
+      </div>
+
+      <div class="notes-wrapper"></div>
     </div>
 
     <!-- Script -->

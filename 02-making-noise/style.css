@@ -24,12 +24,12 @@ html, body {
 }
 
 input[type="range"] {
-  width: 200px;
+  width: 140px;
 }
 
 label,
 .label {
-  width: 200px;
+  width: 140px;
   font-size: 13px;
   font-weight: 500;
 }
