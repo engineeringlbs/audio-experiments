@@ -8,48 +8,58 @@
   </head>
   <body>
     <div class="wrapper">
-      <h2 class="mb-16">WebAudio API Synth 🎛️🎚️</h2>
-      <p class="mb-16">
-        An experiment to explore the JavaScript WebAudio API capabilities.
-      </p>
+      <img src="../assets/logo-line.svg" alt="logo" class="logo" />
 
+      <h2 class="mb-16">WebAudio API Synth 🎛️🎚️</h2>
+      <p>An experiment to explore the JavaScript WebAudio API capabilities.</p>
+    </div>
+
+    <div class="wrapper">
       <h3 class="mb-16">Main</h3>
 
-      <div class="mb-16">
-        <button id="play">Play</button>
-        <button id="pause">Pause</button>
-        <button id="stop">Stop</button>
-      </div>
+      <div class="row">
+        <div class="col">
+          <div class="mb-16">
+            <button id="play">Play</button>
+            <button id="pause">Pause</button>
+            <button id="stop">Stop</button>
+          </div>
 
-      <div class="container">
-        <div class="container mb-8">
-          <label for="volume" class="flex"
-            >Volume <span id="vol">0.2</span></label
-          >
-          <input
-            type="range"
-            name="volume"
-            id="volume"
-            min="0"
-            max="1"
-            step="0.01"
-            value="0.2"
-          />
+          <div class="container">
+            <div class="container mb-8">
+              <label for="volume" class="flex"
+                >Volume <span id="vol">0.2</span></label
+              >
+              <input
+                type="range"
+                name="volume"
+                id="volume"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.2"
+              />
+            </div>
+
+            <div class="container mb-16">
+              <label for="tempo" class="flex"
+                >Tempo <span id="bpm">120 bpm</span></label
+              >
+              <input
+                type="range"
+                name="tempo"
+                id="tempo"
+                min="60"
+                max="300"
+                step="1"
+                value="120"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="container mb-16">
-          <label for="tempo" class="flex"
-            >Tempo <span id="bpm">120 bpm</span></label
-          >
-          <input
-            type="range"
-            name="tempo"
-            id="tempo"
-            min="60"
-            max="300"
-            step="1"
-            value="120"
-          />
+        <div class="col ml-16">
+          <canvas id="plot" class="avz"></canvas>
         </div>
       </div>
     </div>
@@ -187,10 +197,10 @@
           <div class="adsr-visualizer-wrapper">
             <svg
               class="adsr-visualizer"
-              viewBox="0 0 600 100"
+              viewBox="0 0 400 100"
               preserveAspectRatio="xMinYMid slice"
             >
-              <polyline class="shape"/>
+              <polyline class="shape" />
 
               <circle
                 class="dot-delay"
@@ -241,7 +251,7 @@
 
               <circle
                 class="dot-release"
-                cx="600"
+                cx="400"
                 cy="100"
                 r="4"
                 fill="transparent"

@@ -40,8 +40,10 @@ let currentNote = 0 // current note index
 // Main Aucio Context
 const context = new AudioContext()
 const main = new GainNode(context)
+const analyser = new AnalyserNode(context)
 
 main.gain.value = 0.2
+main.connect(analyser)
 main.connect(context.destination)
 
 // UI
@@ -55,7 +57,7 @@ startBtn.addEventListener('click', () => {
     playing = true
 
     if (context.state === 'suspended') context.resume()
-    
+
     loop()
   }
 })
@@ -63,7 +65,9 @@ startBtn.addEventListener('click', () => {
 stopBtn.addEventListener('click', () => {
   playing = false
 
-  if (context.state === 'running') context.suspend()
+  if (context.state === 'running') {
+    context.suspend()
+  }
 })
 
 tempoCtrl.addEventListener(
@@ -147,7 +151,7 @@ function onSelectNoteChange() {
 /**
  * AHDSR Envelope (Attack, Hold, Decay, Sustain, Release)
  */
-const WIDTH = 600
+const WIDTH = 400
 const HEIGHT = 200
 const HALF_HEIGHT = HEIGHT / 2
 const attackCtrl = document.querySelector('#attack')
@@ -168,7 +172,7 @@ const AHDSRVisualizer = {
   release: AHDSRContainer.querySelector('.dot-release'),
 }
 
-let duration = 2
+let duration = 4
 let attackTime = 0.25 // s
 let holdTime = 0.25 // s
 let decayTime = 0.25 // s
@@ -231,7 +235,7 @@ releaseCtrl.addEventListener(
 )
 
 function updateADSR() {
-  duration = Math.max(attackTime + holdTime + decayTime + 0.5 + releaseTime, 0)
+  duration = attackTime + holdTime + decayTime + releaseTime
 
   const points = calcEnvelopePoints(
     duration,
@@ -316,14 +320,16 @@ function playNote() {
   note.gain.setValueAtTime(0, now)
   // Attack
   note.gain.linearRampToValueAtTime(1, now + attackTime)
-  note.gain.setValueAtTime(1, now + attackTime)
+  // note.gain.setValueAtTime(1, attck)
   // Hold
-  note.gain.linearRampToValueAtTime(1, now + attackTime + holdTime)
+  const hld = now + attackTime + holdTime
+  note.gain.linearRampToValueAtTime(1, hld)
   // Decay and sustain
   note.gain.linearRampToValueAtTime(
     sustainLevel,
     now + attackTime + holdTime + decayTime
   )
+  note.gain.linearRampToValueAtTime(0, now + duration)
 
   // trying to keep garbage clean as possible
   garbage.push(osc)
@@ -331,11 +337,11 @@ function playNote() {
 
   osc.connect(note).connect(main)
 
-  osc.start(0)
+  
+  osc.start()
   osc.stop(now + duration)
-
-  console.log(context.outputLatency);
 }
+
 
 function nextNote() {
   currentNote += 1
@@ -349,3 +355,94 @@ function nextNote() {
 function clean() {
   garbage.length = 0
 }
+
+/**
+ * Audio visualizations
+ *
+ * - Plot
+ * - Oscilloscope
+ * - Waveform
+ * - Spectrum
+ * - Spectogram
+ */
+
+const CANVAS_WIDTH = 400
+const CANVAS_HEIGHT = 120
+const RATIO = window.devicePixelRatio
+
+function drawPlot({
+  context = context,
+  data = [],
+}) {
+  const len = data.length
+  const get = (i) => data[i | 0] ?? data[len - 1]
+  const ox = RATIO / 100
+  const w = CANVAS_WIDTH * RATIO
+  const height = CANVAS_HEIGHT * RATIO
+  const l = 1
+  const hl = l
+  const hw = w * 0.5 * hl
+  const h = height - l
+  const step = Math.max(0.00001, 2 / len) // * 2 move two periods
+  if (!isFinite(step)) return
+  const sx = 1 / w
+  const cf = len / (w * 2)
+  // panning
+  const ds = cf * w * 2
+
+  let i = ((len - ds) / cf) * ox
+  let cx = 0
+  let cy = 0
+  let x = -1
+
+  const calculate = (y) => {
+    cx = (x + 1) * hw - hl
+    cy = (1 - (y + 1) * 0.5) * h + hl
+  }
+  calculate(get(0))
+
+  context.lineWidth = 2
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, w, height)
+  context.beginPath()
+  context.moveTo(cx, cy)
+
+  for (x = -1; x <= 1; x += sx) {
+    calculate(get(i++ * cf))
+    context.lineTo(cx, cy)
+  }
+
+  calculate(get(i++ * cf))
+  context.lineTo(cx, cy)
+  context.lineTo(cx, cy)
+  context.stroke()
+  context.restore()
+}
+
+// initialize Plot
+const plot = document.querySelector('#plot')
+const plotCtx = plot.getContext('2d', { alpha: false, desynchronized: true })
+
+plot.width = CANVAS_WIDTH * RATIO
+plot.height = CANVAS_HEIGHT * RATIO
+plot.style.width = CANVAS_WIDTH + 'px'
+plot.style.height = CANVAS_HEIGHT + 'px'
+
+function animate() {
+  requestAnimationFrame(animate)
+  const oscw = new Float32Array(analyser.frequencyBinCount)
+  analyser.getFloatTimeDomainData(oscw)
+  drawPlot({ context: plotCtx, data: oscw })
+}
+
+
+// performance animation
+let lastTime = null
+function frame(time) {
+  if (lastTime != null) {
+    animate(Math.min(100, time - lastTime) / 1000)
+  }
+  lastTime = time
+  requestAnimationFrame(frame)
+}
+requestAnimationFrame(frame)

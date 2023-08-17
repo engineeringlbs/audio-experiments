@@ -9,6 +9,11 @@ html, body {
   padding: 0;
 }
 
+.logo {
+  width: 120px;
+  margin-bottom: 12px;
+}
+
 .wrapper {
   padding: 20px;
 }
