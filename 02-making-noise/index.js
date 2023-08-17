@@ -1,17 +1,3 @@
-const state = {
-  synths: {
-    osc: {
-      toggle: true,
-    },
-    lfo: {
-      toggle: false,
-    },
-    envelope: {
-      toggle: true,
-    },
-  },
-}
-
 const NOTES = {
   C4: 261.63,
   Db4: 277.18,
@@ -26,6 +12,28 @@ const NOTES = {
   Bb4: 466.16,
   B4: 493.88,
   C5: 523.25,
+}
+
+/** 
+ * Keyboard mapping
+ * 
+ *  W E   T Y   U
+ * A S D F G H J K
+ */
+const KEYS = {
+  A: NOTES.C4,
+  W: NOTES.Db4,
+  S: NOTES.D4,
+  E: NOTES.Eb4,
+  D: NOTES.E4,
+  F: NOTES.F4,
+  T: NOTES.Gb4,
+  G: NOTES.G4,
+  Y: NOTES.Ab4,
+  H: NOTES.A4,
+  U: NOTES.Bb4,
+  J: NOTES.B4,
+  K: NOTES.C5,
 }
 
 const garbage = []
@@ -91,7 +99,9 @@ volumeCtrl.addEventListener(
 )
 
 document.addEventListener('keydown', (event) => {
-  if (event.code === 'KeyA') playNote()
+  const char = event.code.replace('Key', '')
+  const freq = KEYS[char]
+  if (freq) playNote(freq)
 })
 
 /**
@@ -306,12 +316,12 @@ function loop() {
 /**
  * Play a note.
  */
-function playNote() {
+function playNote(fr) {
   // trying to keep garbage clean as possible
   clean()
 
   const now = context.currentTime
-  const freq = Object.values(NOTES)[`${currentNotes[currentNote]}`]
+  const freq = fr || Object.values(NOTES)[`${currentNotes[currentNote]}`]
   const osc = new OscillatorNode(context, {
     type: waveform,
     frequency: freq,
@@ -337,11 +347,11 @@ function playNote() {
 
   osc.connect(note).connect(main)
 
-  
   osc.start()
   osc.stop(now + duration)
-}
 
+  console.log(navigator.hardwareConcurrency)
+}
 
 function nextNote() {
   currentNote += 1
@@ -370,10 +380,7 @@ const CANVAS_WIDTH = 400
 const CANVAS_HEIGHT = 120
 const RATIO = window.devicePixelRatio
 
-function drawPlot({
-  context = context,
-  data = [],
-}) {
+function drawPlot({ context = context, data = [] }) {
   const len = data.length
   const get = (i) => data[i | 0] ?? data[len - 1]
   const ox = RATIO / 100
@@ -428,13 +435,23 @@ plot.height = CANVAS_HEIGHT * RATIO
 plot.style.width = CANVAS_WIDTH + 'px'
 plot.style.height = CANVAS_HEIGHT + 'px'
 
+const size = 0.2
+const w = CANVAS_WIDTH * size
+const h = CANVAS_HEIGHT * size
+
 function animate() {
   requestAnimationFrame(animate)
+
   const oscw = new Float32Array(analyser.frequencyBinCount)
   analyser.getFloatTimeDomainData(oscw)
+  
   drawPlot({ context: plotCtx, data: oscw })
+  
+  // Pixelating data 🤘
+  // plotCtx.imageSmoothingEnabled = false
+  // plotCtx.drawImage(plot, 0, 0, w, h)
+  // plotCtx.drawImage(plot, 0, 0, w, h, 0, 0, CANVAS_WIDTH * RATIO, CANVAS_HEIGHT* RATIO)
 }
-
 
 // performance animation
 let lastTime = null
@@ -446,3 +463,23 @@ function frame(time) {
   requestAnimationFrame(frame)
 }
 requestAnimationFrame(frame)
+
+
+/**
+ * Try to keep track of CPU
+ */
+const work = new Worker(
+  'data:text/javascript,setInterval(` dl=Date.now();for(itr=1;itr<1000;itr++){};dl=Date.now()-dl;postMessage(dl);`,1000);'
+)
+
+work.onmessage = (event) => {
+  console.info(
+    12 -
+      event.data +
+      (' point' +
+        (new Intl.PluralRules(navigator.language).select(12 - event.data) ===
+        'one'
+          ? ''
+          : 's'))
+  )
+}
