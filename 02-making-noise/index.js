@@ -196,6 +196,7 @@ let holdTime = 0.25 // s
 let decayTime = 0.25 // s
 let sustainLevel = 0.8 // % or dB
 let releaseTime = 1 // s
+let remain = 0
 
 attackCtrl.addEventListener(
   'input',
@@ -334,9 +335,8 @@ function noteOn(freq, char) {
   // Attack
   note.gain.linearRampToValueAtTime(1, now + attackTime)
   // note.gain.setValueAtTime(1, attck)
-  // Hold
   const hld = now + attackTime + holdTime
-  note.gain.linearRampToValueAtTime(1, hld)
+  note.gain.setValueAtTime(1, hld)
   // Decay and sustain
   note.gain.linearRampToValueAtTime(
     sustainLevel,
@@ -346,18 +346,17 @@ function noteOn(freq, char) {
   notes[char] = { osc, note }
 
   osc.connect(note).connect(main)
-
   osc.start()
 }
 
 function noteOff(freq, char) {
   const now = context.currentTime
   const { osc, note } = notes[char]
-  console.log(osc);
-  console.log(note);
+
   note.gain.setValueAtTime(sustainLevel, now + attackTime + holdTime + decayTime)
   note.gain.linearRampToValueAtTime(0, now + duration)
   osc.stop(now + duration)
+
   delete notes[char]
 }
 
@@ -375,13 +374,14 @@ function playNote(fr, create = true) {
     frequency: freq,
   })
   const note = new GainNode(context)
+
+  // Schedule
   note.gain.setValueAtTime(0, now)
   // Attack
   note.gain.linearRampToValueAtTime(1, now + attackTime)
-  // note.gain.setValueAtTime(1, attck)
-  // Hold
+  // Hold. Don't need to be a ramp
   const hld = now + attackTime + holdTime
-  note.gain.linearRampToValueAtTime(1, hld)
+  note.gain.setValueAtTime(1, hld)
   // Decay and sustain
   note.gain.linearRampToValueAtTime(
     sustainLevel,
