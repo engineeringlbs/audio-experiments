@@ -5,6 +5,7 @@ const context = new AudioContext()
 const output = context.destination
 const main = new GainNode(context)
 const compressor = new DynamicsCompressorNode(context)
+let isPlaying = false
 
 const synth = {
   drum: {
@@ -176,5 +177,11 @@ function makeSomeNoise() {
   beat ++
 }
 
-document.querySelector('#play').addEventListener('click', loop.start, false)
-document.querySelector('#stop').addEventListener('click', loop.stop, false)
+document.querySelector('#play').addEventListener('click', () => {
+  loop.start()
+  document.querySelector('#play').classList.add('active')
+}, false)
+document.querySelector('#stop').addEventListener('click', ()=> {
+  loop.stop()
+  document.querySelector('#play').classList.remove('active')
+}, false)

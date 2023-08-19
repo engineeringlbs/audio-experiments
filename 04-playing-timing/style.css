@@ -23,6 +23,31 @@ html, body {
   flex-direction: column;
 }
 
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+button {
+  width: 80px;
+  height: 80px;
+  border: none;
+  border-radius: 2px;
+  background-color: #efefef;
+  color: #111111;
+  cursor: pointer;
+}
+
+button:hover,
+button:active,
+button.active {
+  background-color: #111111;
+  color: #efefef;
+}
+
+sup {
+  font-family: monospace;
+}
+
 input[type="range"] {
   width: 140px;
 }
