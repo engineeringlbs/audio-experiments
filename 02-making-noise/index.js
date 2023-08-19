@@ -353,8 +353,9 @@ function noteOff(freq, char) {
   const now = context.currentTime
   const { osc, note } = notes[char]
 
-  note.gain.setValueAtTime(sustainLevel, now + attackTime + holdTime + decayTime)
-  note.gain.linearRampToValueAtTime(0, now + duration)
+  note.gain.setValueAtTime(sustainLevel, now)
+  note.gain.linearRampToValueAtTime(0, now + releaseTime)
+  
   osc.stop(now + duration)
 
   delete notes[char]
