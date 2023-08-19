@@ -1,6 +1,6 @@
 /**
  * Basic setup
- * 
+ *
  * DynamicCompressorNode --> GainNode --> AudioCOntextDestination
  */
 const ZERO = 0.00001
@@ -13,30 +13,28 @@ destination.connect(output)
 // destination.connect(compressor).connect(output)
 
 document.querySelector('#kick').addEventListener('click', playKick, false)
-document.querySelector('#kick2').addEventListener('click', playKick2, false)
 
 /**
- * The Kick sounds more complicated as we’d like but as you can see below 
+ * The Kick sounds more complicated as we’d like but as you can see below
  * the implementation is pretty simple.
- * 
+ *
  * OscillatorNode --> GainNode --> Destination
- * 
+ *
  * Maybe we can improve the kick..
- * 
+ *
  * OscillatorNode --> GainNode --> Destination \
  *                                              --> Destination
  * OscillatorNode --> GainNode --> Destination /
  */
 function playKick() {
   const now = context.currentTime
-  const osc = new OscillatorNode(context)
+  const osc = new OscillatorNode(context, {
+    frequency: 150,
+  })
   const gain = new GainNode(context)
 
   osc.connect(gain)
   gain.connect(destination)
-
-  osc.frequency.setValueAtTime(150, now) // Kick frequency
-  gain.gain.setValueAtTime(1, now)
 
   // Nothe that we use exponential ramping!
   osc.frequency.exponentialRampToValueAtTime(ZERO, now + 0.5)
@@ -44,47 +42,16 @@ function playKick() {
 
   osc.start(now)
   osc.stop(now + 0.5)
+
+  osc.onended = () => {
+    osc.disconnect()
+    gain.disconnect()
+  }
 }
-
-function playKick2() {
-  const now = context.currentTime
-  const osc = new OscillatorNode(context)
-  const osc2 = new OscillatorNode(context)
-  const gain = new GainNode(context)
-  const gain2 = new GainNode(context)
-
-  osc.type = 'triangle'
-  osc2.type = 'sine'
-
-  osc.connect(gain)
-  gain.connect(destination)
-
-  osc2.connect(gain2)
-  gain2.connect(destination)
-
-  osc.frequency.setValueAtTime(40, now)
-  gain.gain.setValueAtTime(1, now)
-
-  osc2.frequency.setValueAtTime(80, now)
-  gain2.gain.setValueAtTime(1, now)
-
-  osc.frequency.exponentialRampToValueAtTime(ZERO, now + 0.5)
-  gain.gain.exponentialRampToValueAtTime(ZERO, now + 0.5)
-  
-  osc2.frequency.exponentialRampToValueAtTime(ZERO, now + 0.5)
-  gain2.gain.exponentialRampToValueAtTime(ZERO, now + 0.5)
-
-  osc.start(now)
-  osc2.start(now)
-
-  osc.stop(now + 0.5)
-  osc2.stop(now + 0.5)
-}
-
 
 /**
  * The Snare drum is pretty simple too.
- * 
+ *
  *                             OscillatorNode --> GainNode  \
  *                                                           --> Destination
  * AudioBufferSourceNode --> BiquadFilterNode --> GainNode  /
@@ -112,13 +79,13 @@ function playSnare() {
   noiseFilter.connect(noiseGain)
   noiseGain.connect(destination)
 
-  noiseGain.gain.setValueAtTime(1, now);
-	noiseGain.gain.exponentialRampToValueAtTime(ZERO, now + 0.2)
-  
+  noiseGain.gain.setValueAtTime(1, now)
+  noiseGain.gain.exponentialRampToValueAtTime(ZERO, now + 0.2)
+
   osc.frequency.setValueAtTime(100, now)
   gain.gain.setValueAtTime(0.7, now)
   gain.gain.exponentialRampToValueAtTime(ZERO, now + 0.1)
-	
+
   noise.start(now)
   osc.start(now)
 
@@ -139,16 +106,15 @@ function noiseBuffer() {
   return buffer
 }
 
-
 /**
  * The HiHat 🤯
- * 
+ *
  * The hi-hat is hard. When you strike a disk of metal the sound that produces is a complex
- * mix of unevenly-spaced harmonics wich decay at different times. 
- * 
+ * mix of unevenly-spaced harmonics wich decay at different times.
+ *
  * Joe Sullivan talk about that in his [blog](http://joesul.li/van/synthesizing-hi-hats/)
  * Synthesizing Bells - https://www.soundonsound.com/techniques/synthesizing-bells
- * 
+ *
  * OscillatorNode \
  * OscillatorNode -\
  * OscillatorNode --\    bandpass             highpass
@@ -166,10 +132,11 @@ function playHiHat() {
   const gain = new GainNode(context)
   const bandpass = new BiquadFilterNode(context)
   const highpass = new BiquadFilterNode(context)
+  const oscs = []
 
   bandpass.type = 'bandpass'
   bandpass.frequency.value = 10000
-  
+
   highpass.type = 'highpass'
   highpass.frequency.value = 7000
 
@@ -178,14 +145,17 @@ function playHiHat() {
   gain.connect(destination)
 
   ratios.forEach((ratio) => {
-    const osc = new OscillatorNode(context)
-    osc.type = 'square'
-    osc.frequency.value = fundamental * ratio
-    
+    const osc = new OscillatorNode(context, {
+      type: 'square',
+      frequency: fundamental * ratio,
+    })
+
     osc.connect(bandpass)
 
     osc.start(now)
     osc.stop(now + 0.3)
+
+    oscs.push(osc)
   })
 
   gain.gain.setValueAtTime(ZERO, now)
@@ -193,4 +163,126 @@ function playHiHat() {
   // gain.gain.exponentialRampToValueAtTime(1, now + 0.02)
   gain.gain.exponentialRampToValueAtTime(0.3, now + 0.03)
   gain.gain.exponentialRampToValueAtTime(ZERO, now + 0.03)
+
+  oscs[oscs.length - 1].onended = () => {
+    oscs.forEach((osc) => osc.disconnect())
+    gain.disconnect()
+  }
 }
+
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'KeyK') {
+    playKick()
+  }
+  if (event.code === 'KeyS') {
+    playSnare()
+  }
+  if (event.code === 'KeyA') {
+    playHiHat()
+  }
+}, false)
+
+
+/**
+ * Draw WaveForm
+ */
+function WaveMaker() {
+  const SMOOTH = 0 // from 0 to 1
+  const PARTS = 64
+  const NS = 'http://www.w3.org/2000/svg'
+  const container = document.querySelector('.wave-maker')
+  const svg = document.createElementNS(NS, 'svg')
+  const path = document.createElementNS(NS, 'path')
+  const bbox = container.getBoundingClientRect()
+  const w = bbox.width / (PARTS - 1)
+  const points = []
+  let vector = ``
+
+  svg.setAttribute('width', bbox.width)
+  svg.setAttribute('height', bbox.height)
+  svg.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`)
+  container.appendChild(svg)
+  svg.insertBefore(path, svg.firstChild)
+
+  this.drawPath = () => {
+    vector = ``
+
+    for (let i = 1; i < points.length; i++) {
+      const start = points[i - 1]
+      const end = points[i]
+      // M
+      const mx = start[0]
+      const my = start[1]
+      // L
+      const lx = Math.abs(end[0] - start[0]) * 0 + start[0]
+      const ly = start[1]
+      // C
+      const cx = start[0] + Math.abs(end[0] - start[0]) * SMOOTH
+      const cy = start[1]
+      const dx = end[0] - Math.abs(end[0] - start[0]) * SMOOTH
+      const dy = end[1]
+      const ex = -Math.abs(end[0] - start[0]) * 0 + end[0]
+      const ey = end[1]
+      // L
+      const fx = end[0]
+      const fy = end[1]
+
+      vector = `${vector} M ${mx},${my} L ${lx},${ly} C ${cx},${cy} ${dx},${dy} ${ex},${ey} L ${fx},${fy}`
+    }
+
+    console.log(vector)
+    path.setAttribute('d', vector)
+    path.setAttribute('stroke', '#000000')
+    path.setAttribute('stroke-width', 1)
+    path.setAttribute('fill', 'none')
+  }
+
+  this.init = () => {
+    const h = bbox.height / 2
+
+    for (let i = 0; i < PARTS; i++) {
+      const circle = document.createElementNS(NS, 'circle')
+      const y = h
+      const sx = i * w
+
+      circle.setAttribute('id', `rect-${i}`)
+      circle.setAttribute('cx', sx)
+      circle.setAttribute('cy', y)
+      circle.setAttribute('r', 3)
+      circle.setAttribute('fill', i === 0 || i === PARTS - 1 ? 'transparent' : '#000000')
+      circle.setAttribute('data-index', i)
+      svg.appendChild(circle)
+
+      circle.addEventListener('mousedown', (event) => {
+        const ci = event.target
+        const id = ci.getAttribute('id').replace('rect-', '')
+        let m = false
+        const move = (event) => {
+          const ny = event.clientY - bbox.top
+          points[Number(id)][1] = ny
+          circle.setAttribute('cy', ny)
+
+          this.drawPath()
+        }
+
+        ci.setAttribute('r', 4)
+
+        document.addEventListener('mousemove', move, false)
+
+        document.addEventListener('mouseup', () => {
+          ci.setAttribute('r', 3)
+          document.removeEventListener('mousemove', move)
+        })
+      })
+
+      points.push([sx, y])
+    }
+  }
+
+  this.init()
+  this.drawPath()
+
+  return { svg, itemWidth: w, bbox }
+}
+
+const wm = new WaveMaker()
