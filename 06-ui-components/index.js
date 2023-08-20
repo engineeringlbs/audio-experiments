@@ -1,0 +1,48 @@
+import Tempo from './js/tempo.js'
+import TimeSignature from './js/time-signature.js'
+
+/**
+ * Basic audio setup
+ *
+ * DynamicCompressorNode --> GainNode --> AudioCOntextDestination
+ */
+const context = new AudioContext()
+const output = context.destination
+const destination = new GainNode(context)
+
+destination.connect(output)
+
+// UI settings
+const RATIO = window.devicePixelRatio
+const SETTINGS = {
+  bpm: 120.00, // Beats per minute. 20-999,
+  octaves: 7,
+  // 0 = white, 1 = black
+  // 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0
+  notes: 12,
+  timeSignature: {
+    numerator: 4, // Beats per bar. 1-99
+    denominator: 4, // Beat value. 1, 2, 4, 8 or 16
+  },
+  minCellWidth: 30,
+  maxCellWidth: 300,
+  zoom: 1,
+}
+
+
+
+const tempo = new Tempo({
+  wrapper: '.bpm',
+  bpm: SETTINGS.bpm,
+  onChange: (bpm) => {
+    console.log(`Tempo changed: ${bpm} BPM`);
+  }
+})
+
+const timesignature = new TimeSignature({
+  wrapper: '.signature',
+  onChange: (props) => {
+    console.log(`Time signature changed: ${props.numerator} / ${props.denominator}`);
+  }
+})
+
