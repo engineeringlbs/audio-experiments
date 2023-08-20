@@ -21,6 +21,8 @@ export default class Pianoroll {
   subcolumns = 4 // beats
   points = { h: [], v: [] }
   // Notes
+  noteWidth = 0
+  noteHeight = 0
   notes = []
 
   constructor({
@@ -41,6 +43,10 @@ export default class Pianoroll {
 
     window.addEventListener('resize', () => this.setupGrid(), false)
 
+    this.setup()
+  }
+
+  setup() {
     this.setupGrid()
     this.setupHighlights()
     this.setupEvents()
@@ -54,6 +60,9 @@ export default class Pianoroll {
     const columns = this.columns * this.subcolumns
     const y = height / this.rows
     const x = width / columns
+
+    this.noteWidth = x - 2
+    this.noteHeight = y - 2
 
     this.editor = document.createElementNS(NS, 'svg')
     this.editor.setAttribute('class', 'pr-editor')
@@ -90,9 +99,7 @@ export default class Pianoroll {
     // Columns
     for (let c = 0; c < columns; c++) {
       const rect = document.createElementNS(NS, 'rect')
-      const cls = `pr-vertical-grid-line ${
-        c % this.subcolumns === 0 && ' bar'
-      }`
+      const cls = `pr-vertical-grid-line ${c % this.subcolumns === 0 && ' bar'}`
       rect.setAttribute('class', cls)
       rect.setAttribute('data-id', c)
       rect.setAttribute('width', 1)
@@ -117,11 +124,15 @@ export default class Pianoroll {
       rect.setAttribute('y', h * r)
       this.highlights.appendChild(rect)
     }
+
+    if (this.notes.length) {
+      this.notes.forEach((n) => this.addHighlight(n))
+    }
   }
 
   /**
    * 🧠
-   * 
+   *
    * Pensar sobre tener una variable `currentRow` para controlar las posiciones.
    * Nos puede ser muy util para lanzar sonidos cuando hagamos `mousedown` y `mousemove`
    * por la cuadrícula. También para poder mover los `highlights` por la cuadrícula.
@@ -140,7 +151,7 @@ export default class Pianoroll {
     const { layerX, layerY } = event
     const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
     const exist = this.notes.find((note) => {
-      const n = {...note }
+      const n = { ...note }
       delete n.id
       return JSON.stringify(n) === JSON.stringify(highlight)
     })
@@ -153,13 +164,13 @@ export default class Pianoroll {
   }
 
   addHighlight(highlight) {
-    const { x, width, height, row } = highlight
+    const { x, row } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
     const rect = document.createElementNS(NS, 'rect')
     rect.setAttribute('class', 'pr-highlight')
     rect.setAttribute('data-id', x)
-    rect.setAttribute('width', width - 2)
-    rect.setAttribute('height', height - 2)
+    rect.setAttribute('width', this.noteWidth)
+    rect.setAttribute('height', this.noteHeight)
     rect.setAttribute('x', x + 1)
     rect.setAttribute('y', 1)
     rect.setAttribute('rx', 3)
@@ -171,9 +182,7 @@ export default class Pianoroll {
   removeHighlight(highlight) {
     const { row, id } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
-    const rect = container.querySelector(
-      `.pr-highlight[data-id="${id}"]`
-    )
+    const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
 
     container.removeChild(rect)
 
@@ -184,15 +193,11 @@ export default class Pianoroll {
    * Utils
    */
   getHighlightRectFromMouse(position) {
-    const { width, height } = this.bbox
     const { mx, my } = position
-    const columns = this.columns * this.subcolumns
-    const h = height / this.rows
-    const w = width / columns
     const x = this.points.h.reduce((p, c) => (mx > p && mx > c ? c : p))
     const y = this.points.v.reduce((p, c) => (my > p && my > c ? c : p))
     const index = this.points.v.indexOf(y)
-    return { x: x, width: w, height: h, row: index }
+    return { x: x, row: index }
   }
 
   /**
@@ -201,13 +206,13 @@ export default class Pianoroll {
   setBpm(bpm) {
     this.bpm = bpm
 
-    this.setupGrid()
+    this.setup()
   }
 
   setTimeSignature(signature) {
     this.columns = signature.numerator ??= this.columns
     this.subcolumns = signature.denominator ??= this.subcolumns
 
-    this.setupGrid()
+    this.setup()
   }
 }
