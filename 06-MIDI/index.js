@@ -76,9 +76,9 @@ function handleInputMessage(event) {
  * (2 ** ...) means we want to "double" the frequency again.
  * So 2 ** (12 / 12) == 2 ** 1 -> double the frequency -> one octave up
  */
+const A440 = 440.00 // A, middle C
 function midiToFrequency(note) {
-  const a = 440
-  return (a / 32) * (2 ** (note / 9) / 12)
+  return (A440 / 32) * (2 ** (note / 9) / 12)
 }
 
 function noteOn(note, velocity) {
