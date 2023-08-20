@@ -170,23 +170,39 @@ select {
 }
 
 .pianoroll {
+  position: relative;
   width: 100%;
   height: 240px;
-  background-color: #efefef;
+  background-color: #111111;
   overflow: hidden;
 }
 
-.pianoroll-horizontal-grid-line,
-.pianoroll-bar-grid-line {
-  fill: #c2c2c2;
+.pianoroll-mouse-observer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pianoroll-highlight-row {
+  fill: #fce302;
+}
+.pianoroll-highlight {
+  fill: #fce302;
+}
+
+.pianoroll-vertical-grid-line {
+  fill: #202020;
   pointer-events: none;
 }
-.pianoroll-vertical-grid-line {
-  fill: #dbdbdb;
+.pianoroll-horizontal-grid-line,
+.pianoroll-vertical-grid-line.bar {
+  fill: #343434;
   pointer-events: none;
 }
 
 .pianoroll-horizontal-grid-line[data-id="0"],
-.pianoroll-bar-grid-line[data-id="0"] {
+.pianoroll-vertical-grid-line[data-id="0"] {
   display: none;
 }
