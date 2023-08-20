@@ -10,7 +10,7 @@ export default class Tempo {
   }
   onChange = undefined
 
-  constructor({ wrapper, bpm = 120.0, onChange = undefined }) {
+  constructor({ wrapper, bpm = 120, onChange = undefined }) {
     const w = document.querySelector(wrapper)
 
     this.bpm = bpm

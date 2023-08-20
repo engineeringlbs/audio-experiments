@@ -1,5 +1,6 @@
 import Tempo from './js/tempo.js'
 import TimeSignature from './js/time-signature.js'
+import Pianoroll from './js/pianoroll.js'
 
 /**
  * Basic audio setup
@@ -20,7 +21,7 @@ const SETTINGS = {
   // 0 = white, 1 = black
   // 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0
   notes: 12,
-  timeSignature: {
+  signature: {
     numerator: 4, // Beats per bar. 1-99
     denominator: 4, // Beat value. 1, 2, 4, 8 or 16
   },
@@ -30,19 +31,32 @@ const SETTINGS = {
 }
 
 
+const pianoroll = new Pianoroll({
+  wrapper: '.pianoroll',
+  bpm: SETTINGS.bpm,
+  signature: SETTINGS.signature,
+  instruments: ['Open Hat', 'Closed Hat', 'Clap', 'Kick'],
+  onChange: (props) => {
+    console.log(`Pianoroll change: ${props}`);
+  }
+})
 
 const tempo = new Tempo({
   wrapper: '.bpm',
   bpm: SETTINGS.bpm,
   onChange: (bpm) => {
-    console.log(`Tempo changed: ${bpm} BPM`);
+    SETTINGS.bpm = bpm
+    pianoroll.setBpm(bpm)
   }
 })
 
 const timesignature = new TimeSignature({
   wrapper: '.signature',
+  signature: SETTINGS.signature,
   onChange: (props) => {
-    console.log(`Time signature changed: ${props.numerator} / ${props.denominator}`);
+    SETTINGS.signature.numerator = props.numerator
+    SETTINGS.signature.denominator = props.denominator
+    pianoroll.setTimeSignature(SETTINGS.signature)
   }
 })
 
