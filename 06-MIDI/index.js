@@ -6,7 +6,7 @@ play.onclick = () => {
   play.classList.add('active')
 }
 const context = new AudioContext()
-const voices = {}
+const voices = new Map()
 
 /**
  * Setup MIDI
@@ -44,7 +44,8 @@ function updateDevices(/** event */) {}
  * i1 is the midi note number
  * i2 is the velocity
  *
- * MIDI command:
+ * MIDI commands for Arturia MiniLab 3 🎹
+ * 
  * - 144: keyboard key press
  * - 128: keyboard key release
  *
@@ -81,29 +82,46 @@ function midiToFrequency(note) {
 }
 
 function noteOn(note, velocity) {
-  const osc = new OscillatorNode(context)
+  const now = context.currentTime
+  const frequency = midiToFrequency(note)
+  const osc = new OscillatorNode(context, {
+    frequency: frequency,
+    type: 'sine'
+  })
   const gain = new GainNode(context)
+  const vgain = new GainNode(context) // 0 to 1
 
-  osc.type = 'sine'
-  osc.frequency.value = midiToFrequency(note)
-  gain.gain.value = 0.8
+  gain.gain.setValueAtTime(0.33, now)
+  vgain.gain.setValueAtTime((1 / 127) * velocity, now)
 
   osc.connect(gain)
-  gain.connect(context.destination)
+  gain.connect(vgain)
+  vgain.connect(context.destination)
 
-  voices[note.toString()] = {
+  voices.set(note.toString(), {
     osc,
     gain,
-  }
+    vgain
+  })
 
+  console.log(voices);
   osc.start()
 }
 
 function noteOff(note) {
-  const { osc, gain } = voices[note]
-  osc.stop()
+  const now = context.currentTime
+  const key = note.toString()
+  const { osc, gain, vgain } = voices.get(key)
+  if (!osc || !gain || !vgain) noteOff(note)
+
+  gain.gain.setValueAtTime(gain.gain.value, now)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07)
+  osc.stop(now + 0.07) // 0.005 release
+  voices.delete(key)
+
   osc.onended = () => {
     osc.disconnect()
     gain.disconnect()
+    vgain.disconnect()
   }
 }
