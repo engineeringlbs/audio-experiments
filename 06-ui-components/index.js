@@ -16,7 +16,7 @@ destination.connect(output)
 // UI settings
 const RATIO = window.devicePixelRatio
 const SETTINGS = {
-  bpm: 120.00, // Beats per minute. 20-999,
+  bpm: 120.0, // Beats per minute. 20-999,
   octaves: 7,
   // 0 = white, 1 = black
   // 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0
@@ -30,15 +30,14 @@ const SETTINGS = {
   zoom: 1,
 }
 
-
 const pianoroll = new Pianoroll({
   wrapper: '.pianoroll',
   bpm: SETTINGS.bpm,
   signature: SETTINGS.signature,
   instruments: ['Open Hat', 'Closed Hat', 'Clap', 'Kick'],
   onChange: (props) => {
-    console.log(`Pianoroll change: ${props}`);
-  }
+    console.log(`Pianoroll change: ${props}`)
+  },
 })
 
 const tempo = new Tempo({
@@ -47,7 +46,7 @@ const tempo = new Tempo({
   onChange: (bpm) => {
     SETTINGS.bpm = bpm
     pianoroll.setBpm(bpm)
-  }
+  },
 })
 
 const timesignature = new TimeSignature({
@@ -57,6 +56,5 @@ const timesignature = new TimeSignature({
     SETTINGS.signature.numerator = props.numerator
     SETTINGS.signature.denominator = props.denominator
     pianoroll.setTimeSignature(SETTINGS.signature)
-  }
+  },
 })
-
