@@ -21,7 +21,7 @@ export default class Pianoroll {
   subcolumns = 4 // beats
   points = { h: [], v: [] }
   // Notes
-  selected = []
+  notes = []
 
   constructor({
     wrapper,
@@ -56,19 +56,19 @@ export default class Pianoroll {
     const x = width / columns
 
     this.editor = document.createElementNS(NS, 'svg')
-    this.editor.setAttribute('class', 'pianoroll-editor')
+    this.editor.setAttribute('class', 'pr-editor')
     this.editor.setAttribute('width', width)
     this.editor.setAttribute('height', height)
     this.container.appendChild(this.editor)
 
     this.grid = document.createElementNS(NS, 'svg')
-    this.grid.setAttribute('class', 'pianoroll-grid')
+    this.grid.setAttribute('class', 'pr-grid')
     this.grid.setAttribute('width', width)
     this.grid.setAttribute('height', height)
     this.editor.appendChild(this.grid)
 
     this.highlights = document.createElementNS(NS, 'svg')
-    this.highlights.setAttribute('class', 'pianoroll-highlight')
+    this.highlights.setAttribute('class', 'pr-highlight')
     this.highlights.setAttribute('width', width)
     this.highlights.setAttribute('height', height)
     this.editor.appendChild(this.highlights)
@@ -76,7 +76,7 @@ export default class Pianoroll {
     // Rows
     for (let r = 0; r < this.rows; r++) {
       const rect = document.createElementNS(NS, 'rect')
-      rect.setAttribute('class', 'pianoroll-horizontal-grid-line')
+      rect.setAttribute('class', 'pr-horizontal-grid-line')
       rect.setAttribute('data-id', r)
       rect.setAttribute('width', width)
       rect.setAttribute('height', 1)
@@ -90,7 +90,7 @@ export default class Pianoroll {
     // Columns
     for (let c = 0; c < columns; c++) {
       const rect = document.createElementNS(NS, 'rect')
-      const cls = `pianoroll-vertical-grid-line ${
+      const cls = `pr-vertical-grid-line ${
         c % this.subcolumns === 0 && ' bar'
       }`
       rect.setAttribute('class', cls)
@@ -109,7 +109,7 @@ export default class Pianoroll {
     const h = this.bbox.height / this.rows
     for (let r = 0; r < this.rows; r++) {
       const rect = document.createElementNS(NS, 'svg')
-      rect.setAttribute('class', 'pianoroll-highlight-row')
+      rect.setAttribute('class', 'pr-highlight-row')
       rect.setAttribute('data-id', r)
       rect.setAttribute('width', this.bbox.width)
       rect.setAttribute('height', h)
@@ -119,8 +119,15 @@ export default class Pianoroll {
     }
   }
 
+  /**
+   * 🧠
+   * 
+   * Pensar sobre tener una variable `currentRow` para controlar las posiciones.
+   * Nos puede ser muy util para lanzar sonidos cuando hagamos `mousedown` y `mousemove`
+   * por la cuadrícula. También para poder mover los `highlights` por la cuadrícula.
+   */
   setupEvents() {
-    this.mouseObserver.setAttribute('class', 'pianoroll-mouse-observer')
+    this.mouseObserver.setAttribute('class', 'pr-mouse-observer')
     this.container.appendChild(this.mouseObserver)
     this.mouseObserver?.addEventListener(
       'click',
@@ -132,20 +139,45 @@ export default class Pianoroll {
   onGridClick(event) {
     const { layerX, layerY } = event
     const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
+    const exist = this.notes.find((note) => {
+      const n = {...note }
+      delete n.id
+      return JSON.stringify(n) === JSON.stringify(highlight)
+    })
 
-    this.addHighlight(highlight)
+    if (exist) {
+      this.removeHighlight(exist)
+    } else {
+      this.addHighlight(highlight)
+    }
   }
 
   addHighlight(highlight) {
     const { x, width, height, row } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
     const rect = document.createElementNS(NS, 'rect')
-    rect.setAttribute('class', 'pianoroll-highlight')
+    rect.setAttribute('class', 'pr-highlight')
+    rect.setAttribute('data-id', x)
     rect.setAttribute('width', width - 2)
     rect.setAttribute('height', height - 2)
     rect.setAttribute('x', x + 1)
     rect.setAttribute('y', 1)
+    rect.setAttribute('rx', 3)
     container.appendChild(rect)
+
+    this.notes.push({ ...highlight, id: x })
+  }
+
+  removeHighlight(highlight) {
+    const { row, id } = highlight
+    const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
+    const rect = container.querySelector(
+      `.pr-highlight[data-id="${id}"]`
+    )
+
+    container.removeChild(rect)
+
+    this.notes = this.notes.filter((n) => n.id !== id)
   }
 
   /**
