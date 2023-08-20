@@ -37,11 +37,11 @@ function playKick() {
   gain.connect(destination)
 
   // Nothe that we use exponential ramping!
-  osc.frequency.exponentialRampToValueAtTime(ZERO, now + 0.5)
-  gain.gain.exponentialRampToValueAtTime(ZERO, now + 0.5)
+  osc.frequency.exponentialRampToValueAtTime(ZERO, now + 0.65)
+  gain.gain.exponentialRampToValueAtTime(ZERO, now + 0.65)
 
   osc.start(now)
-  osc.stop(now + 0.5)
+  osc.stop(now + 0.65)
 
   osc.onended = () => {
     osc.disconnect()
