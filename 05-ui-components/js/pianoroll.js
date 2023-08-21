@@ -248,18 +248,20 @@ export default class Pianoroll {
     const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
     const exist = this.core.notes.find((n) => n.id === highlight.id)
 
-    // if (exist) {
-    //   this.selectHighlight(exist)
-    // } else {
-    //   this.addHighlight(highlight)
-    // }
+    if (exist) {
+      this.selectHighlight(exist)
+    } else {
+      this.addHighlight(highlight)
+    }
   }
 
   addHighlight(highlight) {
-    const { id, x, row, beat, note } = highlight
-    const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
+    const { id, x, bar, beat, step } = highlight
+    const container = this.highlights.querySelector(`svg[data-id="${bar}"]`)
     const rect = document.createElementNS(NS, 'rect')
     const element = { ...highlight, id }
+
+    console.log(element);
 
     rect.setAttribute('class', 'pr-highlight')
     rect.setAttribute('data-id', id)
@@ -270,13 +272,13 @@ export default class Pianoroll {
     rect.setAttribute('rx', 3)
     container.appendChild(rect)
 
-    this.core.grid[row][beat][note] = element
+    this.core.grid[bar][beat][step] = element
     this.core.notes.push(element)
   }
 
   selectHighlight(highlight) {
-    const { id, row } = highlight
-    const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
+    const { id, bar } = highlight
+    const container = this.highlights.querySelector(`svg[data-id="${bar}"]`)
     const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
     rect.classList.toggle('selected')
   }
@@ -302,13 +304,14 @@ export default class Pianoroll {
    */
   getHighlightRectFromMouse(position) {
     const { mx, my } = position
-    const { beatWidth, stepWidth, stepHeight } = this.core
+    const { beatWidth, stepWidth, stepHeight, points } = this.core
     const bar = Math.floor(my / stepHeight)
     const beat = Math.floor(mx / beatWidth)
     const step = Math.floor((mx - (beatWidth * beat)) / stepWidth)
+    const x = points.columns.reduce((p, c) => (mx > p && mx > c ? c : p))
     const id = `step-${bar}-${beat}-${step}`
 
-    return { id, bar, beat, step }
+    return { id, x, bar, beat, step }
   }
 
   /**
