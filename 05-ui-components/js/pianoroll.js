@@ -1,7 +1,5 @@
 /**
  * Pianoroll 🎹
- *
- * https://learningmusic.ableton.com/es/make-beats/bars.html
  */
 const NS = 'http://www.w3.org/2000/svg'
 
@@ -122,10 +120,10 @@ export default class Pianoroll {
       height,
       bars: this.bars,
       beats: this.beats,
-      beatWidth: width / this.beats,
+      beatWidth: Math.round(width / this.beats),
       steps: this.steps,
-      stepWidth: width / total,
-      stepHeight: height / this.bars,
+      stepWidth: Math.round(width / total),
+      stepHeight: Math.round(height / this.bars),
       columns: total,
       grid: grid,
       points: {
@@ -222,46 +220,39 @@ export default class Pianoroll {
 
     // TODO: add default notes
     if (notes.length) {
-      notes.forEach((n) => this.addHighlight(n))
+      notes.forEach((n) => this.addStep(n))
     }
   }
 
-  /**
-   * 🧠
-   *
-   * Pensar sobre tener una variable `currentRow` para controlar las posiciones.
-   * Nos puede ser muy util para lanzar sonidos cuando hagamos `mousedown` y `mousemove`
-   * por la cuadrícula. También para poder mover los `highlights` por la cuadrícula.
-   */
   setupEvents() {
     this.mouseObserver.setAttribute('class', 'pr-mouse-observer')
     this.container.appendChild(this.mouseObserver)
     this.mouseObserver?.addEventListener(
-      'click',
-      this.onGridClick.bind(this),
+      'dblclick',
+      this.onGridDoubleClick.bind(this),
       false
     )
   }
 
-  onGridClick(event) {
+  onGridDoubleClick(event) {
     const { layerX, layerY } = event
-    const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
-    const exist = this.core.notes.find((n) => n.id === highlight.id)
+    const step = this.getStepObject({ mx: layerX, my: layerY })
+    const exist = this.core.notes.find((n) => n.id === step.id)
 
     if (exist) {
-      this.selectHighlight(exist)
+      this.removeStep(exist)
     } else {
-      this.addHighlight(highlight)
+      this.addStep(step)
     }
   }
 
-  addHighlight(highlight) {
+  addStep(highlight) {
     const { id, x, bar, beat, step } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${bar}"]`)
     const rect = document.createElementNS(NS, 'rect')
     const element = { ...highlight, id }
 
-    console.log(element);
+    console.log(this.core.stepWidth);
 
     rect.setAttribute('class', 'pr-highlight')
     rect.setAttribute('data-id', id)
@@ -276,7 +267,24 @@ export default class Pianoroll {
     this.core.notes.push(element)
   }
 
-  selectHighlight(highlight) {
+  removeStep(highlight) {
+    console.log('Remove')
+    const { id, bar, beat, step } = highlight
+    const container = this.highlights.querySelector(`svg[data-id="${bar}"]`)
+    const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
+    rect.classList.toggle('selected')
+
+    container.removeChild(rect)
+
+    this.core.grid[bar][beat][step] = 0
+    this.core.notes = this.core.notes.filter((n) => n.id !== id)
+  }
+
+  /**
+   * 
+   * @todo implemnt
+   */
+  highlightStep(highlight) {
     const { id, bar } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${bar}"]`)
     const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
@@ -284,25 +292,9 @@ export default class Pianoroll {
   }
 
   /**
-   * @todo implement correctly
-   */
-  removeHighlight(highlight) {
-    console.log('Remove')
-    const { id, row, beat, note } = highlight
-    const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
-    const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
-    rect.classList.toggle('selected')
-
-    container.removeChild(rect)
-
-    this.core.grid[row][beat][note] = 0
-    this.core.notes = this.core.notes.filter((n) => n.id !== id)
-  }
-
-  /**
    * Utils
    */
-  getHighlightRectFromMouse(position) {
+  getStepObject(position) {
     const { mx, my } = position
     const { beatWidth, stepWidth, stepHeight, points } = this.core
     const bar = Math.floor(my / stepHeight)
