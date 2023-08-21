@@ -293,6 +293,8 @@ export default class Pianoroll {
 
   /**
    * Utils
+   * 
+   * Improve!! 🙏🏻
    */
   getStepObject(position) {
     const { mx, my } = position
