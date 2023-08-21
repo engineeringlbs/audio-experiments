@@ -19,6 +19,7 @@ export default class TimeSignature {
       numerator: w.querySelector('#numerator'),
       denominator: w.querySelector('#denominator'),
     }
+    console.log(signature);
     this.numerator = signature.numerator ??= this.numerator
     this.denominator = signature.denominator ??= this.denominator
     this.onChange = onChange
@@ -48,6 +49,9 @@ export default class TimeSignature {
       },
       false
     )
+
+    this.UI.numerator.value = Number(this.numerator)
+    this.UI.denominator.selected = this.denominator
   }
 
   setNumerator(value) {
