@@ -19,11 +19,42 @@ export default class Pianoroll {
   // Need another property to handle how many bars need to draw
   columns = 4 // 1 bars (compás)
   subcolumns = 4 // beats
-  points = { h: [], v: [] }
-  // Notes
-  noteWidth = 0
-  noteHeight = 0
-  notes = []
+  /**
+   * An object to hold the grid information.
+   * We need to create a row per instrument/note.
+   * Inside the rows we need to create an Array for each bar, and inside we need an Array
+   * for each beat.
+   *
+   * By other hand, we need to create a matrix to store the positions of the grid items to
+   * easy access and calculate the mouse interactions.
+   *
+   * To find notes quickly we can create an array and store the ids.
+   *
+   * @example to 4 intruments (k, s, oh, ch) and siignature 4 / 4
+   *
+   * layout = {
+   *    width: 847,
+   *    height: 240,
+   *    bar: 4,
+   *    beats: 4,
+   *    columnWidth: 52.9375, // 847px width
+   *    columns: 16,
+   *    rowHeight: 60, // 240px height
+   *    rows: 4,
+   *    grid: {
+   *      0: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+   *      1: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+   *      2: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+   *      3: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+   *    },
+   *    ponts: {
+   *      rows: [0, 52.9375, 105,875, ...],
+   *      columns: [0, 240, 480, ...],
+   *    },
+   *    notes: []
+   * }
+   */
+  layout = []
 
   constructor({
     wrapper,
@@ -47,22 +78,48 @@ export default class Pianoroll {
   }
 
   setup() {
+    this.setupLayout()
     this.setupGrid()
     this.setupHighlights()
     this.setupEvents()
+  }
+
+  setupLayout() {
+    const { width, height } = this.bbox
+    const total = this.columns * this.subcolumns
+    const grid = {}
+
+    for (let r = 0; r < this.rows; r++) {
+      const bars = Array.from({ length: this.columns }, (i) => {
+        return Array.from({ length: this.subcolumns }, () => 0)
+      })
+
+      grid[r] = bars
+    }
+
+    this.layout = {
+      width,
+      height,
+      bar: this.columns,
+      beats: this.subcolumns,
+      noteWidth: Math.round(width / total),
+      columns: total,
+      noteHeight: Math.round(height / this.rows),
+      rows: this.rows,
+      grid,
+      points: {
+        rows: [],
+        columns: [],
+      },
+      notes: [],
+    }
   }
 
   setupGrid() {
     // Keep it clean
     this.editor && this.container.removeChild(this.editor)
 
-    const { width, height } = this.bbox
-    const columns = this.columns * this.subcolumns
-    const y = height / this.rows
-    const x = width / columns
-
-    this.noteWidth = x - 2
-    this.noteHeight = y - 2
+    const { width, height, columns, noteWidth, noteHeight } = this.layout
 
     this.editor = document.createElementNS(NS, 'svg')
     this.editor.setAttribute('class', 'pr-editor')
@@ -85,49 +142,57 @@ export default class Pianoroll {
     // Rows
     for (let r = 0; r < this.rows; r++) {
       const rect = document.createElementNS(NS, 'rect')
+      const position = Math.round(noteHeight * r)
+
       rect.setAttribute('class', 'pr-horizontal-grid-line')
       rect.setAttribute('data-id', r)
       rect.setAttribute('width', width)
       rect.setAttribute('height', 1)
       rect.setAttribute('x', 0)
-      rect.setAttribute('y', y * r)
+      rect.setAttribute('y', position)
       this.grid.appendChild(rect)
 
-      this.points.v.push(y * r)
+      this.layout.points.rows.push(position)
     }
 
     // Columns
     for (let c = 0; c < columns; c++) {
       const rect = document.createElementNS(NS, 'rect')
       const cls = `pr-vertical-grid-line ${c % this.subcolumns === 0 && ' bar'}`
+      const position = Math.round(noteWidth * c)
+
       rect.setAttribute('class', cls)
       rect.setAttribute('data-id', c)
       rect.setAttribute('width', 1)
       rect.setAttribute('height', height)
-      rect.setAttribute('x', x * c)
+      rect.setAttribute('x', position)
       rect.setAttribute('y', 0)
       this.grid.appendChild(rect)
 
-      this.points.h.push(x * c)
+      this.layout.points.columns.push(position)
     }
   }
 
   setupHighlights() {
-    const h = this.bbox.height / this.rows
+    const { width, noteHeight } = this.layout
+
     for (let r = 0; r < this.rows; r++) {
       const rect = document.createElementNS(NS, 'svg')
+      const position = Math.round(noteHeight * r)
+
       rect.setAttribute('class', 'pr-highlight-row')
       rect.setAttribute('data-id', r)
-      rect.setAttribute('width', this.bbox.width)
-      rect.setAttribute('height', h)
+      rect.setAttribute('width', width)
+      rect.setAttribute('height', noteHeight)
       rect.setAttribute('x', 0)
-      rect.setAttribute('y', h * r)
+      rect.setAttribute('y', position)
       this.highlights.appendChild(rect)
     }
 
-    if (this.notes.length) {
-      this.notes.forEach((n) => this.addHighlight(n))
-    }
+    // TODO: add default notes
+    // if (this.notes.length) {
+    //   this.notes.forEach((n) => this.addHighlight(n))
+    // }
   }
 
   /**
@@ -150,12 +215,8 @@ export default class Pianoroll {
   onGridClick(event) {
     const { layerX, layerY } = event
     const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
-    const exist = this.notes.find((note) => {
-      const n = { ...note }
-      delete n.id
-      return JSON.stringify(n) === JSON.stringify(highlight)
-    })
-
+    const exist = this.layout.notes.find((n) => n.id === highlight.id)
+    console.log(highlight)
     if (exist) {
       this.removeHighlight(exist)
     } else {
@@ -164,29 +225,33 @@ export default class Pianoroll {
   }
 
   addHighlight(highlight) {
-    const { x, row } = highlight
+    const { id, x, row, beat, note } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
     const rect = document.createElementNS(NS, 'rect')
+
     rect.setAttribute('class', 'pr-highlight')
-    rect.setAttribute('data-id', x)
-    rect.setAttribute('width', this.noteWidth)
-    rect.setAttribute('height', this.noteHeight)
+    rect.setAttribute('data-id', id)
+    rect.setAttribute('width', this.layout.noteWidth - 2)
+    rect.setAttribute('height', this.layout.noteHeight - 2)
     rect.setAttribute('x', x + 1)
     rect.setAttribute('y', 1)
     rect.setAttribute('rx', 3)
     container.appendChild(rect)
 
-    this.notes.push({ ...highlight, id: x })
+    const element = { ...highlight, id }
+    this.layout.grid[row][beat][note] = element
+    this.layout.notes.push(element)
   }
 
   removeHighlight(highlight) {
-    const { row, id } = highlight
+    const { id, row, beat, note } = highlight
     const container = this.highlights.querySelector(`svg[data-id="${row}"]`)
     const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
 
     container.removeChild(rect)
 
-    this.notes = this.notes.filter((n) => n.id !== id)
+    this.layout.grid[row][beat][note] = 0
+    this.layout.notes = this.layout.notes.filter((n) => n.id !== id)
   }
 
   /**
@@ -194,10 +259,15 @@ export default class Pianoroll {
    */
   getHighlightRectFromMouse(position) {
     const { mx, my } = position
-    const x = this.points.h.reduce((p, c) => (mx > p && mx > c ? c : p))
-    const y = this.points.v.reduce((p, c) => (my > p && my > c ? c : p))
-    const index = this.points.v.indexOf(y)
-    return { x: x, row: index }
+    const { bar, beats, noteWidth, points, noteHeight } = this.layout
+    const x = points.columns.reduce((p, c) => (mx > p && mx > c ? c : p))
+    const y = points.rows.reduce((p, c) => (my > p && my > c ? c : p))
+    const row = y / noteHeight
+    const beat = Math.floor(x / (noteWidth * bar))
+    const note = (x / noteWidth) % beats
+    const id = `note-${row}-${beat}-${note}`
+
+    return { id, x, row, beat, note }
   }
 
   /**
