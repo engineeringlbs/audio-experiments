@@ -37,9 +37,10 @@ export default class Pianoroll {
    *    height: container.height,
    *    bars: numerator,
    *    beats: denominator,
+   *    beatWidth: width / beats,
    *    steps: beats * steps,
-   *    stepWidth: width / steps, // 847px width
-   *    stepHeight: 60, // 240px height
+   *    stepWidth: width / steps,
+   *    stepHeight: 60,
    *    columns: beats * steps,
    *    grid: {
    *          --- beat ---  --- beat ---  --- beat ---  --- beat ---
@@ -61,6 +62,7 @@ export default class Pianoroll {
     height: undefined,
     bars: undefined,
     beats: undefined,
+    beatWidth: undefined,
     steps: undefined,
     stepWidth: undefined,
     stepHeight: undefined,
@@ -120,10 +122,11 @@ export default class Pianoroll {
       height,
       bars: this.bars,
       beats: this.beats,
+      beatWidth: width / this.beats,
       steps: this.steps,
-      stepWidth: Math.round(width / total),
-      stepHeight: Math.round(height / this.bars),
-      columns: this.beats * this.steps,
+      stepWidth: width / total,
+      stepHeight: height / this.bars,
+      columns: total,
       grid: grid,
       points: {
         rows: [],
@@ -245,11 +248,11 @@ export default class Pianoroll {
     const highlight = this.getHighlightRectFromMouse({ mx: layerX, my: layerY })
     const exist = this.core.notes.find((n) => n.id === highlight.id)
 
-    if (exist) {
-      this.selectHighlight(exist)
-    } else {
-      this.addHighlight(highlight)
-    }
+    // if (exist) {
+    //   this.selectHighlight(exist)
+    // } else {
+    //   this.addHighlight(highlight)
+    // }
   }
 
   addHighlight(highlight) {
@@ -299,20 +302,13 @@ export default class Pianoroll {
    */
   getHighlightRectFromMouse(position) {
     const { mx, my } = position
-    const { bar, beats, stepWidth, points, stepHeight } = this.core
-    const x = points.columns.reduce((p, c) => (mx > p && mx > c ? c : p))
-    const y = points.rows.reduce((p, c) => (my > p && my > c ? c : p))
-    const row = y / stepHeight
-    const note = (x / stepWidth) % beats
-    const beat = Math.round(x / (stepWidth * bar))
-    const id = `note-${row}-${beat}-${note}`
+    const { beatWidth, stepWidth, stepHeight } = this.core
+    const bar = Math.floor(my / stepHeight)
+    const beat = Math.floor(mx / beatWidth)
+    const step = Math.floor((mx - (beatWidth * beat)) / stepWidth)
+    const id = `step-${bar}-${beat}-${step}`
 
-    console.log(note)
-    // console.log(row, beat, note)
-    // console.log(beat)
-    // console.log(note)
-
-    return { id, x, row, beat, note }
+    return { id, bar, beat, step }
   }
 
   /**
