@@ -13,7 +13,7 @@ const parameters = [
   // { freq: 9, amp: 5, type: 'sine' },
   // { freq: 27, amp: 1, type: 'sine' },
   // { freq: 81, amp: 1, type: 'noise' },
-  { freq: 440, amp: 140, type: 'square' },
+  // { freq: 440, amp: 140, type: 'square' },
   // { freq: 3, amp: 25, type: 'square' },
   // { freq: 9, amp: 5, type: 'square' },
   // { freq: 27, amp: 1, type: 'square' },
@@ -22,6 +22,7 @@ const parameters = [
   // { freq: 3, amp: 25, type: 'sawtooth' },
   // { freq: 9, amp: 5, type: 'sawtooth' },
   // { freq: 27, amp: 1, type: 'sawtooth' },
+  { freq: 440, amp: 140, type: 'triangle' },
   // { freq: 81, amp: 180, type: 'noise' },
 ]
 //
@@ -100,7 +101,12 @@ function update() {
       }
       // sawtooth wave
       if (p.type == 'sawtooth') {
+        // value = 1 - 2 * ((scale.x / currentX) % 1) // mola
         value = 1 - 2 * ((currentX / scale.x) % 1)
+      }
+      // trangle wave
+      if (p.type == 'triangle') {
+        value = freq - ((currentX / scale.x) % freq) - freq
       }
       // square wave
       if (p.type == 'square') {
