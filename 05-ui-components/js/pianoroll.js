@@ -40,6 +40,7 @@ export default class Pianoroll {
    *    steps: beats * steps,
    *    stepWidth: width / steps, // 847px width
    *    stepHeight: 60, // 240px height
+   *    columns: beats * steps,
    *    grid: {
    *          --- beat ---  --- beat ---  --- beat ---  --- beat ---
    *          4 x step      4 x step      4 x step      4 x step
@@ -63,6 +64,7 @@ export default class Pianoroll {
     steps: undefined,
     stepWidth: undefined,
     stepHeight: undefined,
+    columns: undefined,
     grid: {},
     points: {
       rows: [],
@@ -97,7 +99,7 @@ export default class Pianoroll {
     this.setupGrid()
     this.setupHighlights()
 
-    console.log(this.core.grid);
+    console.log(this.core.grid)
   }
 
   setupLayout() {
@@ -113,7 +115,6 @@ export default class Pianoroll {
       grid[r] = bars
     }
 
-    
     this.core = {
       width,
       height,
@@ -122,6 +123,7 @@ export default class Pianoroll {
       steps: this.steps,
       stepWidth: Math.round(width / total),
       stepHeight: Math.round(height / this.bars),
+      columns: this.beats * this.steps,
       grid: grid,
       points: {
         rows: [],
@@ -129,14 +131,23 @@ export default class Pianoroll {
       },
       notes: this.core.notes,
     }
-    console.log(this.core);
+    console.log(this.core)
   }
 
   setupGrid() {
     // Keep it clean
     this.editor && this.container.removeChild(this.editor)
 
-    const { width, height, bars, steps, stepWidth, stepHeight, points } = this.core
+    const {
+      width,
+      height,
+      bars,
+      steps,
+      columns,
+      stepWidth,
+      stepHeight,
+      points,
+    } = this.core
 
     this.editor = document.createElementNS(NS, 'svg')
     this.editor.setAttribute('class', 'pr-editor')
@@ -173,9 +184,9 @@ export default class Pianoroll {
     }
 
     // Columns
-    for (let c = 0; c < steps; c++) {
+    for (let c = 0; c < columns; c++) {
       const rect = document.createElementNS(NS, 'rect')
-      const cls = `pr-vertical-grid-line ${c % steps === 0 && ' bar'}`
+      const cls = `pr-vertical-grid-line ${c % steps === 0 ? ' bar' : ''}`
       const position = Math.round(stepWidth * c)
 
       rect.setAttribute('class', cls)
@@ -266,7 +277,7 @@ export default class Pianoroll {
     const rect = container.querySelector(`.pr-highlight[data-id="${id}"]`)
     rect.classList.toggle('selected')
   }
-  
+
   /**
    * @todo implement correctly
    */
@@ -295,7 +306,7 @@ export default class Pianoroll {
     const note = (x / stepWidth) % beats
     const beat = Math.round(x / (stepWidth * bar))
     const id = `note-${row}-${beat}-${note}`
-    
+
     console.log(note)
     // console.log(row, beat, note)
     // console.log(beat)
