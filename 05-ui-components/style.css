@@ -186,8 +186,14 @@ select {
 }
 
 .pr-highlight {
+  border-radius: 2px;
   fill: #e9d200;
 }
+.pr-highlight.selected {
+  outline: solid 2px white;
+  outline-offset: -2px;
+}
+
 
 .pr-vertical-grid-line {
   fill: #202020;

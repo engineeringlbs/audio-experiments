@@ -34,7 +34,7 @@ const pianoroll = new Pianoroll({
   wrapper: '.pianoroll',
   bpm: SETTINGS.bpm,
   signature: SETTINGS.signature,
-  instruments: ['Open Hat', 'Closed Hat', 'Clap', 'Kick'],
+  bars: ['Open Hat', 'Closed Hat', 'Clap', 'Kick'],
   onChange: (props) => {
     console.log(`Pianoroll change: ${props}`)
   },
