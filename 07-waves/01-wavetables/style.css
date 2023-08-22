@@ -73,11 +73,19 @@ button {
   color: #111111;
   cursor: pointer;
 }
+button svg {
+  fill: #111111;
+}
 
 button:hover,
 button:active {
   background-color: #111111;
   color: #efefef;
+}
+
+button:hover svg,
+button:active svg {
+  fill: #efefef;
 }
 
 a {
@@ -98,6 +106,22 @@ a {
 #play.active .play {
   display: none;
 }
+
+#wave { 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace; 
+}
+#wave .sine { display: none; }
+#wave .square { display: none; }
+#wave .triangle { display: none; }
+#wave .sawtooth { display: none; }
+
+#wave.sine .sine { display: inherit; }
+#wave.square .square { display: inherit; }
+#wave.triangle .triangle { display: inherit; }
+#wave.sawtooth .sawtooth { display: inherit; }
 
 .ml-8 {
   margin-left: 8px;

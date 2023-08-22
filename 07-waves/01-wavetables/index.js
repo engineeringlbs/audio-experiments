@@ -14,6 +14,21 @@ function handlePlayClick(event) {
   playBtn.classList.toggle('active')
 }
 
+const waves = ['sine', 'square', 'triangle', 'sawtooth']
+const waveBtn = document.querySelector('#wave')
+waveBtn.addEventListener('click', nextWave, false)
+
+let wi = 2
+let selectedWave = 'square'
+function nextWave() {
+  if (wi === 3) wi = 0
+  else wi += 1
+
+  waveBtn.className = `ml-8 ${waves[wi]}`
+  selectedWave = waves[wi]
+}
+nextWave()
+
 const frequencyControl = document.querySelector('.frequency-control')
 const frequencySlider = frequencyControl.querySelector('#frequency')
 const frequencyOut = frequencyControl.querySelector('.output')
@@ -58,25 +73,24 @@ const real = new Float32Array(bufferSize)
 const imag = new Float32Array(bufferSize)
 // Create the waveforms to avoid the delay caused for computation time if we create it on the fly.
 // Maybe we can use an AudioWorklet instead.
-const sinewave = createAudioWave('sine', bufferSize)
-const squarewave = createAudioWave('square', bufferSize)
-const sawtoothwave = createAudioWave('sawtooth', bufferSize)
-const trianglewave = createAudioWave('triangle', bufferSize)
+const waveforms = {
+  sine: createAudioWave('sine', bufferSize),
+  square: createAudioWave('square', bufferSize),
+  sawtooth: createAudioWave('sawtooth', bufferSize),
+  triangle: createAudioWave('triangle', bufferSize)
+}
 
 
 function play() {
   oscillator = acontext.createOscillator()
-
+  console.log(selectedWave);
   // Custom wave
-  oscillator.setPeriodicWave(sinewave)
-
-  draw('sine')
+  oscillator.setPeriodicWave(waveforms[selectedWave])
 
   // WAA wave
-  // oscillator.type = 'sine'
+  // oscillator.type = selectedWave
   oscillator.frequency.value = 440.0
   volumeNode.gain.value = 0.5
-  console.log(oscillator);
 
   oscillator.connect(volumeNode)
   oscillator.start()
@@ -123,4 +137,4 @@ function draw(type) {
   ctx.stroke()
 }
 
-draw('triangle')
+draw(selectedWave)

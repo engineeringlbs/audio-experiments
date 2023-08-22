@@ -16,6 +16,7 @@ export default class Waveforms {
  }
 
  static sawtooth(i) {
-   return -2 / i
+  //  return -2 / i
+   return ((-1)**i + 1) * (2 / (i * Math.PI))
  }
 }
