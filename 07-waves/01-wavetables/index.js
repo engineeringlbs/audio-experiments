@@ -1,5 +1,7 @@
 // import Waveforms from './waveforms.js'
-import Wavetables from './wavetables/index.js'
+import wavetables from './wavetables/index.js'
+
+console.log(wavetables.Bass)
 
 
 // UI
@@ -74,7 +76,7 @@ function play() {
 
 function pause() {
   const now = acontext.currentTime
-  
+
   volumeNode.gain.exponentialRampToValueAtTime(0.3, now + 0.03)
   volumeNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.03)
   
