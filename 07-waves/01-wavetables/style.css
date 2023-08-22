@@ -78,7 +78,8 @@ button svg {
 }
 
 button:hover,
-button:active {
+button:active,
+button.selected {
   background-color: #111111;
   color: #efefef;
 }
@@ -86,6 +87,11 @@ button:active {
 button:hover svg,
 button:active svg {
   fill: #efefef;
+}
+
+button.wavetable {
+  width: 200px;
+  height: 30px;
 }
 
 a {
@@ -105,6 +111,25 @@ a {
 }
 #play.active .play {
   display: none;
+}
+
+.scroller {
+  width: auto;
+  height: 300px;
+  overflow: hidden;
+}
+.scrollable {
+  width: auto;
+  height: 100%;
+  overflow: auto;
+}
+div#wavetables {
+  display: flex;
+  flex-direction: column;
+}
+
+div#wavetables button {
+  margin-bottom: 4px;
 }
 
 #wave { 
@@ -136,6 +161,9 @@ a {
   margin-left: 32px;
 }
 
+.mt-8 {
+  margin-top: 8px;
+}
 .mt-18 {
   margin-top: 18px;
 }

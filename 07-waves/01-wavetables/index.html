@@ -16,42 +16,56 @@
     </div>
 
     <div class="wrapper mb-32">
-      <div class="container mb-32">
-        <div class="control frequency-control mb-32">
-          <p class="label flex mb-8">
-            Frequency: <span class="output">440 Hz</span>
-          </p>
-          <input
-            type="range"
-            name="frequency"
-            id="frequency"
-            min="20.0"
-            max="1200.0"
-            step="10"
-            value="440.0"
-          />
-        </div>
-
-        <div class="control volume-control mb-32">
-          <p class="label flex mb-8">Volume: <span class="output">0.3</span></p>
-          <input
-            type="range"
-            name="volume"
-            id="volume"
-            min="0.0"
-            max="1.0"
-            step="0.01"
-            value="0.3"
-          />
-        </div>
-
+      <div class="container">
         <div class="row">
-          <button id="play">
-            <span class="play">►</span><span class="pause">◼︎</span>
-          </button>
+          <div class="column">
+            <p class="label">Wavetables</p>
 
-          <div class="ml-32">
-            <canvas id="canvas" width="160" height="80"></canvas>
+            <div class="scroller mt-8">
+              <div class="scrollable">
+                <div id="wavetables"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column ml-32">
+            <div class="control frequency-control mb-32">
+              <p class="label flex mb-8">
+                Frequency: <span class="output">440 Hz</span>
+              </p>
+              <input
+                type="range"
+                name="frequency"
+                id="frequency"
+                min="20.0"
+                max="1200.0"
+                step="10"
+                value="440.0"
+              />
+            </div>
+
+            <div class="control volume-control mb-32">
+              <p class="label flex mb-8">
+                Volume: <span class="output">0.3</span>
+              </p>
+              <input
+                type="range"
+                name="volume"
+                id="volume"
+                min="0.0"
+                max="1.0"
+                step="0.01"
+                value="0.3"
+              />
+            </div>
+          </div>
+
+          <div class="column ml-32">
+            <p class="label mb-8">Make some noise!</p>
+
+            <button id="play">
+              <span class="play">►</span><span class="pause">◼︎</span>
+            </button>
           </div>
         </div>
       </div>

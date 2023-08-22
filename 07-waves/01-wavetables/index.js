@@ -1,8 +1,4 @@
-// import Waveforms from './waveforms.js'
 import wavetables from './wavetables/index.js'
-
-console.log(wavetables.Bass)
-
 
 // UI
 const playBtn = document.querySelector('#play')
@@ -28,10 +24,34 @@ const volumeSlider = volumeControl.querySelector('#volume')
 const volumeOut = volumeControl.querySelector('.output')
 volumeSlider.addEventListener('input', changeVolume, false)
 
+const wavetablesList = document.querySelector('#wavetables')
+const selected = {}
+
+Object.keys(wavetables).forEach(key => {
+  const button = document.createElement('button')
+  button.setAttribute('id', `wavetable-${wavetables[key].name}`)
+  button.setAttribute('class', 'button wavetable')
+  button.innerText = wavetables[key].name
+
+  button.addEventListener('click', () => {
+    const prev = selected.button
+
+    prev && prev.classList.remove('selected')
+    button.classList.add('selected')
+    
+    selected.button = button
+    selected.wavetable = wavetables[key]
+  }, false)
+
+  wavetablesList.appendChild(button)
+})
+
 // WAA
 const acontext = new AudioContext()
 const volumeNode = acontext.createGain()
 let oscillator = undefined
+let frequency = 440.0
+let volume = 0.5
 
 volumeNode.connect(acontext.destination)
 
@@ -58,17 +78,16 @@ function play() {
   const now = acontext.currentTime
   oscillator = acontext.createOscillator()
   // Custom wave
-  const wave = createAudioWave(Wavetables.Bass)
-  console.log(Wavetables.Bass);
+  const wave = createAudioWave(selected.wavetable)
   oscillator.setPeriodicWave(wave)
 
   // WAA wave
   // oscillator.type = selectedWave
-  oscillator.frequency.value = 440.0
-  volumeNode.gain.value = 0.5
+  oscillator.frequency.value = frequency
+  volumeNode.gain.value = volume
 
   volumeNode.gain.setValueAtTime(0.0001, now)
-  volumeNode.gain.linearRampToValueAtTime(1, now + 0.02)
+  volumeNode.gain.linearRampToValueAtTime(volume, now + 0.02)
 
   oscillator.connect(volumeNode)
   oscillator.start()
@@ -82,17 +101,18 @@ function pause() {
   
   oscillator.stop(now + 0.03)
   oscillator.onended = () => {
-    console.log('End');
     oscillator.disconnect()
   }
 }
 
 function changeFrequency(event) {
+  frequency = event.target.value
   oscillator.frequency.value = event.target.value
   frequencyOut.innerHTML = event.target.value + ' Hz'
 }
 
 function changeVolume(event) {
+  volume = event.target.value
   volumeNode.gain.value = event.target.value
   volumeOut.innerHTML = event.target.value
 }
