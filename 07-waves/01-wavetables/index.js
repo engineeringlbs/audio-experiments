@@ -1,3 +1,4 @@
+// UI
 const playBtn = document.querySelector('#play')
 playBtn.addEventListener('click', handlePlayClick, false)
 
@@ -21,7 +22,18 @@ const volumeSlider = volumeControl.querySelector('#volume')
 const volumeOut = volumeControl.querySelector('.output')
 volumeSlider.addEventListener('input', changeVolume, false)
 
-//https://opendoctype.com
+// Canvas
+const canvas = document.querySelector('#canvas')
+const ctx = canvas.getContext('2d')
+const dpx = window.devicePixelRatio
+const w = 160 * dpx
+const h = 80 * dpx
+
+ctx.width = w
+ctx.height = h
+
+// WAA
+const bufferSize = 2048 // max 4096
 const acontext = new AudioContext()
 const volumeNode = acontext.createGain()
 let oscillator = undefined
@@ -31,12 +43,14 @@ volumeNode.connect(acontext.destination)
 function play() {
   oscillator = acontext.createOscillator()
 
-  // Custom square wave
-  const wave = triangleWave()
+  // Custom wave
+  const wave = createAudioWave('square')
   oscillator.setPeriodicWave(wave)
 
-  // WA square wave
-  // oscillator.type = 'triangle'
+  draw('square')
+
+  // WAA wave
+  // oscillator.type = 'square'
   oscillator.frequency.value = 440.0
 
   volumeNode.gain.value = 0.3
@@ -59,9 +73,7 @@ function changeVolume(event) {
   volumeOut.innerHTML = event.target.value
 }
 
-function squareWave() {
-  // max 4096
-  const n = 2048
+function createAudioWave(type) {
   /**
    * @real - Coeficientes del coseno de la serie de Fourier
    * @imag - Coeficientes del seno
@@ -69,12 +81,12 @@ function squareWave() {
    * Aambas matrices se inicializan con ceros, así que sólo las partes no nulas de los
    * términos seno deben ser calculadas y colocados en las posiciones correctas en imag.
    */
-  const real = new Float32Array(n)
-  const imag = new Float32Array(n)
+  const real = new Float32Array(bufferSize)
+  const imag = new Float32Array(bufferSize)
 
   // Square wave
-  for (let x = 1; x < n; x += 2) {
-    imag[x] = 4.0 / (Math.PI * x)
+  for (let x = 1; x < bufferSize; x += 2) {
+    imag[x] = Waveforms[type](x)
   }
 
   /**
@@ -85,131 +97,35 @@ function squareWave() {
   return wt
 }
 
-function sineWave() {
-  const n = 2048
-  const real = new Float32Array(n)
-  const imag = new Float32Array(n)
-
-  imag[1] = 1
-
-  const wt = acontext.createPeriodicWave(real, imag)
-  return wt
-}
-
-function triangleWave() {
-  const n = 2048
-  const real = new Float32Array(n)
-  const imag = new Float32Array(n)
-
-  for (let i = 1; i < n; i += 2) {
-    // imag[i] = (2 / i) * Math.PI
-    imag[i] = (8 / Math.PI) * Math.sin(i * Math.PI / 2) / (i * i);
+class Waveforms {
+  static sine(x) {
+    return 1
   }
 
-  return acontext.createPeriodicWave(real, imag)
-}
-
-function sawtoothWave() {
-  const n = 2048
-  const real = new Float32Array(n)
-  const imag = new Float32Array(n)
-
-  for (let i = 1; i < n; i++) {
-    imag[i] = -2 / i
+  static square(i) {
+    return 4.0 / (Math.PI * i)
   }
 
-  return acontext.createPeriodicWave(real, imag)
+  static triangle(i) {
+    return ((8 / Math.PI) * Math.sin((i * Math.PI) / 2)) / (i * i)
+  }
+
+  static sawtooth(i) {
+    return -2 / i
+  }
 }
 
-// const acontext = new AudioContext()
+function draw(type) {
+  ctx.beginPath()
 
-// function play() {
-//   const now = acontext.currentTime
-//   const pdata = data.map((d) => d / 1000)
-//   console.log(pdata)
+  if (type === 'square') {
+    // onda cuadrada
+    ctx.moveTo(1, 40)
+    ctx.lineTo(1, 4)
+    ctx.lineTo(80, 4)
+    ctx.lineTo(80, 76)
+    ctx.lineTo(179, 76)
+  }
 
-//   const ft = new DFT(pdata.length)
-//   ft.forward(pdata)
-//   console.log(ft)
-
-//   const osc = new OscillatorNode(acontext)
-//   const wave = acontext.createPeriodicWave(ft.real, ft.imag)
-
-//   osc.setPeriodicWave(wave)
-//   osc.connect(acontext.destination)
-
-//   osc.start(now)
-//   osc.stop(now + 2)
-
-//   osc.onended = () => {
-//     osc.disconnect()
-//   }
-// }
-
-// // DFT is a class for calculating the Discrete Fourier Transform of a signal.
-// function DFT(bufferSize, sampleRate) {
-//   const N = (bufferSize / 2) * bufferSize
-//   const TWO_PI = 2 * Math.PI
-
-//   this.bufferSize = bufferSize
-//   this.sampleRate = sampleRate
-//   this.bandwidth = ((2 / bufferSize) * sampleRate) / 2
-
-//   this.spectrum = new Float64Array(bufferSize / 2)
-//   this.real = new Float64Array(bufferSize)
-//   this.imag = new Float64Array(bufferSize)
-
-//   this.peakBand = 0
-//   this.peak = 0
-
-//   this.sinTable = new Float64Array(N)
-//   this.cosTable = new Float64Array(N)
-
-//   for (let i = 0; i < N; i++) {
-//     this.sinTable[i] = Math.sin((i * TWO_PI) / bufferSize)
-//     this.cosTable[i] = Math.cos((i * TWO_PI) / bufferSize)
-//   }
-
-//   this.forward = (buffer) => {
-//     let real = this.real
-//     let imag = this.imag
-//     let rval = undefined
-//     let ival = undefined
-
-//     for (let k = 0; k < this.bufferSize / 2; k++) {
-//       rval = 0.0
-//       ival = 0.0
-
-//       for (let n = 0; n < buffer.length; n++) {
-//         rval += this.cosTable[k * n] * buffer[n]
-//         ival += this.sinTable[k * n] * buffer[n]
-//       }
-
-//       real[k] = rval
-//       imag[k] = ival
-//     }
-
-//     return this.calculateSpectrum()
-//   }
-
-//   this.calculateSpectrum = () => {
-//     const bSi = 2 / this.bufferSize
-//     const sqrt = Math.sqrt
-//     let rval
-//     let ival
-//     let mag
-
-//     for (var i = 0, N = this.bufferSize / 2; i < N; i++) {
-//       rval = this.real[i]
-//       ival = this.imag[i]
-//       mag = bSi * sqrt(rval * rval + ival * ival)
-
-//       if (mag > this.peak) {
-//         this.peakBand = i
-//         this.peak = mag
-//       }
-
-//       this.spectrum[i] = mag
-//     }
-//   }
-// }
+  ctx.stroke()
+}
