@@ -1,3 +1,5 @@
+import Waveforms from './waveforms.js'
+
 // UI
 const playBtn = document.querySelector('#play')
 playBtn.addEventListener('click', handlePlayClick, false)
@@ -29,31 +31,52 @@ const dpx = window.devicePixelRatio
 const w = 160 * dpx
 const h = 80 * dpx
 
-ctx.width = w
-ctx.height = h
+canvas.style.width = 160 + 'px'
+canvas.style.height = 80 + 'px'
+canvas.width = w
+canvas.height = h
 
 // WAA
-const bufferSize = 2048 // max 4096
 const acontext = new AudioContext()
 const volumeNode = acontext.createGain()
 let oscillator = undefined
 
 volumeNode.connect(acontext.destination)
 
+// Waveforms
+const bufferSize = 44100 // max 4096
+/**
+ * @real - Fourier series cosine coefficients
+ * @imag - Sine coefficients
+ *
+ * Both matrices are initialized with zeros, so only the non-zero parts of the sine terms
+ * must be calculated and placed in the correct positions in imag.
+ * 
+ * Sine terms must be calculated and placed in the correct positions in imag.
+ */
+const real = new Float32Array(bufferSize)
+const imag = new Float32Array(bufferSize)
+// Create the waveforms to avoid the delay caused for computation time if we create it on the fly.
+// Maybe we can use an AudioWorklet instead.
+const sinewave = createAudioWave('sine', bufferSize)
+const squarewave = createAudioWave('square', bufferSize)
+const sawtoothwave = createAudioWave('sawtooth', bufferSize)
+const trianglewave = createAudioWave('triangle', bufferSize)
+
+
 function play() {
   oscillator = acontext.createOscillator()
 
   // Custom wave
-  const wave = createAudioWave('square')
-  oscillator.setPeriodicWave(wave)
+  oscillator.setPeriodicWave(sinewave)
 
-  draw('square')
+  draw('sine')
 
   // WAA wave
-  // oscillator.type = 'square'
+  // oscillator.type = 'sine'
   oscillator.frequency.value = 440.0
-
-  volumeNode.gain.value = 0.3
+  volumeNode.gain.value = 0.5
+  console.log(oscillator);
 
   oscillator.connect(volumeNode)
   oscillator.start()
@@ -73,59 +96,31 @@ function changeVolume(event) {
   volumeOut.innerHTML = event.target.value
 }
 
-function createAudioWave(type) {
-  /**
-   * @real - Coeficientes del coseno de la serie de Fourier
-   * @imag - Coeficientes del seno
-   *
-   * Aambas matrices se inicializan con ceros, así que sólo las partes no nulas de los
-   * términos seno deben ser calculadas y colocados en las posiciones correctas en imag.
-   */
-  const real = new Float32Array(bufferSize)
-  const imag = new Float32Array(bufferSize)
-
+function createAudioWave(type, bufferSize) {
   // Square wave
   for (let x = 1; x < bufferSize; x += 2) {
     imag[x] = Waveforms[type](x)
   }
 
   /**
-   * El método `createPeriodicWave` hace la suma de las partes seno automáticamente.
-   * Además, normaliza el cálculo de modo que la constante C puede omitirse siendo 1.
+   * The `createPeriodicWave` method does the sum of the sine parts automatically.
+   * In addition, it normalizes the calculation so that the constant C can be omitted as 1.
    */
   const wt = acontext.createPeriodicWave(real, imag)
   return wt
 }
 
-class Waveforms {
-  static sine(x) {
-    return 1
-  }
-
-  static square(i) {
-    return 4.0 / (Math.PI * i)
-  }
-
-  static triangle(i) {
-    return ((8 / Math.PI) * Math.sin((i * Math.PI) / 2)) / (i * i)
-  }
-
-  static sawtooth(i) {
-    return -2 / i
-  }
-}
-
 function draw(type) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.beginPath()
+  ctx.lineWidth = 2
 
-  if (type === 'square') {
-    // onda cuadrada
-    ctx.moveTo(1, 40)
-    ctx.lineTo(1, 4)
-    ctx.lineTo(80, 4)
-    ctx.lineTo(80, 76)
-    ctx.lineTo(179, 76)
+  for (let x = 1; x < w; x += 2) {
+    const y = (Waveforms[type](x) * h) / 2
+    ctx.lineTo(x, y + h / 2)
   }
 
   ctx.stroke()
 }
+
+draw('triangle')
